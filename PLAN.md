@@ -51,6 +51,7 @@ ai-music-checker/
 │   │   ├── metadata.py     M1–M4  (local, always on)
 │   │   └── context.py      C1–C5  (only with --online)
 │   ├── community_db.py  curated AI-artist DB fetch/cache/lookup (TDD)
+│   ├── llm_judge.py     optional LLM second-opinion (opt-in, M9)
 │   ├── scoring.py     normalization, weighting, verdict, confidence
 │   ├── report.py      JSON emitter (schema v1)
 │   └── ui.py          ASCII gauge / bars / indicator list
@@ -235,6 +236,20 @@ Top indicators = largest positive/negative `W_i*(s_i−0.5)` contributions.
       "search 'CLMX' on Discogs",
       "check label release cadence on MusicBrainz"
     ]
+  },
+  "llm_judge": {
+    "enabled": true,
+    "backend": "openrouter",
+    "model": "openai/gpt-4o-mini",
+    "probability": 0.78,
+    "confidence": 0.65,
+    "reasoning": "Press text uses generic 'journey into golden future' phrasing typical of AI marketing; artist has zero discogs footprint despite 2026 label release; technical signals inconclusive but metadata pattern matches known AI-label patterns.",
+    "agrees_with_deterministic": true,
+    "key_disagreements": []
+  },
+  "final_ensemble": {
+    "ai_probability": 0.74,
+    "method": "weighted_average(deterministic=0.7, llm=0.3)"
   }
 }
 ```
@@ -296,6 +311,16 @@ ai-music-checker: 72% AI  ██████████████░░░░
     "ttl_hours": 24,
     "fuzzy_enabled": false,
     "fuzzy_threshold": 0.9
+  },
+  "llm_judge": {
+    "enabled": false,
+    "backend": "openrouter",
+    "model": "openai/gpt-4o-mini",
+    "api_key_env": "OPENROUTER_API_KEY",
+    "timeout_s": 30,
+    "temperature": 0.1,
+    "max_tokens": 1500,
+    "prompt_template": "builtin_v1"
   }
 }
 ```
@@ -336,6 +361,7 @@ is reused as-is. If the key is present → include SC footprint signal (profile 
 | M6 | **Community DB (TDD):** write unit tests `test_community_db.py` → implement `community_db.py` → write integration tests `test_context_with_community_db.py` → wire C5 into `signals/context.py` → seed `ai-artists-db` repo with schema + CI + initial entries |
 | M7 | Golden-file tests: synthetic fixtures + reference track (Freedom.mp3); CI smoke test |
 | M8 | Polish: config override precedence, help text, error messages, README usage |
+| **M9** | **LLM Judge (opt-in):** `llm_judge.py` with pluggable backends (OpenAI, Anthropic, Ollama, OpenRouter); `--llm` flag + `--llm-backend`/`--llm-model` CLI overrides; structured prompt v1 from deterministic signals + metadata + optional press text; strict JSON output schema; response caching (`~/.cache/ai-music-checker/llm/` keyed by prompt hash); separate `llm_judge` section in output JSON; optional `final_ensemble` weighted combo; docs: env var setup (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OPENROUTER_API_KEY`) |
 
 ## 11. Test Strategy
 
@@ -382,3 +408,6 @@ is reused as-is. If the key is present → include SC footprint signal (profile 
 7. **Matching strictness:** default exact+alias only; fuzzy opt-in via config — acceptable?
 8. Batch mode: process multiple files sequentially? Parallel? Output summary table?
 9. Config precedence: file → env vars → CLI flags? Define clearly.
+10. **LLM Judge weight in ensemble**: default 0.3 LLM / 0.7 deterministic — tune after eval?
+11. **Prompt versioning**: store prompt hash in output for reproducibility?
+12. **Local LLM support**: Ollama backend for fully offline LLM judging?

@@ -29,5 +29,15 @@
     "ttl_hours": 24,
     "fuzzy_enabled": false,
     "fuzzy_threshold": 0.9
+  },
+  "llm_judge": {
+    "enabled": false,
+    "backend": "openrouter",
+    "model": "openai/gpt-4o-mini",
+    "api_key_env": "OPENROUTER_API_KEY",
+    "timeout_s": 30,
+    "temperature": 0.1,
+    "max_tokens": 1500,
+    "prompt_template": "builtin_v1"
   }
 }
