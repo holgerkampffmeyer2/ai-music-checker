@@ -86,12 +86,12 @@ class TestGroupScore:
 
 class TestVerdictBands:
     @pytest.mark.parametrize("score,expected", [
-        (0.00, "UNAUFFÄLLIG"),
-        (0.20, "UNAUFFÄLLIG"),
-        (0.21, "EHER MENSCHLICH"),
-        (0.40, "EHER MENSCHLICH"),
-        (0.41, "UNKLAR"),
-        (0.60, "UNKLAR"),
+        (0.00, "UNOBTRUSIVE"),
+        (0.20, "UNOBTRUSIVE"),
+        (0.21, "LIKELY HUMAN"),
+        (0.40, "LIKELY HUMAN"),
+        (0.41, "UNCLEAR"),
+        (0.60, "UNCLEAR"),
         (0.61, "LIKELY AI-ASSISTED"),
         (0.80, "LIKELY AI-ASSISTED"),
         (0.81, "VERY LIKELY AI"),
@@ -142,9 +142,9 @@ class TestAggregate:
             "metadata": (0.2, 1.0),
             "context": (0.9, 0.0),  # not enabled / no data
         }
-        weights = {"technical": 40, "metadata": 25, "context": 35}
+        weights = {"technical": 15, "metadata": 5, "context": 80}
         result = aggregate(groups, weights, enabled_groups={"technical", "metadata"})
-        assert result.ai_probability == pytest.approx((0.5 * 40 + 0.2 * 25) / 65)
+        assert result.ai_probability == pytest.approx((0.5 * 15 + 0.2 * 5) / 20)
 
     def test_no_enabled_groups_zero_probability(self):
         from ai_music_checker.scoring import aggregate

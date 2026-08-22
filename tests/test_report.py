@@ -64,7 +64,7 @@ def aggregate():
     from ai_music_checker.scoring import aggregate
 
     groups = {"technical": (0.9, 1.0), "metadata": (0.0, 1.0), "context": (0.0, 0.0)}
-    return aggregate(groups, {"technical": 40, "metadata": 25, "context": 35},
+    return aggregate(groups, {"technical": 15, "metadata": 5, "context": 80},
                      enabled_groups={"technical", "metadata", "context"})
 
 
@@ -169,7 +169,7 @@ class TestBuild:
         ]
         assert data["signals"] == []
         assert data["result"]["ai_probability"] == 0.0
-        assert data["result"]["verdict"] == "UNAUFFÄLLIG"
+        assert data["result"]["verdict"] == "UNOBTRUSIVE"
 
 
 class TestToJson:
@@ -184,9 +184,9 @@ class TestToJson:
         from ai_music_checker.report import build, to_json
 
         text = to_json(build(probe, results, aggregate))
-        assert "LIKELY AI-ASSISTED" in text or "UNAUFF" in text or '"verdict"' in text
+        assert "LIKELY AI-ASSISTED" in text or "UNOBTRUSIVE" in text or '"verdict"' in text
         assert json.loads(text)["result"]["verdict"] in (
-            "UNAUFFÄLLIG", "EHER MENSCHLICH", "UNKLAR",
+            "UNOBTRUSIVE", "LIKELY HUMAN", "UNCLEAR",
             "LIKELY AI-ASSISTED", "VERY LIKELY AI",
         )
 
