@@ -30,11 +30,11 @@
 
 ## 4. Metadata Signals M1–M4 (M3)
 
-- [ ] 4.1 Implement `M1_watermark_scan`: tag/comment pattern matching with whitelist
-- [ ] 4.2 Implement `M2_identifier_gaps`: ISRC/catalog/UPC presence check
-- [ ] 4.3 Implement `M3_cover_provenance`: embedded artwork EXIF extraction + software string scan
-- [ ] 4.4 Implement `M4_naming_heuristics`: filename parsing (acronyms, suffixes, catalog patterns)
-- [ ] 4.5 Write unit tests for each M-signal with mocked tag data
+- [x] 4.1 Implement `M1_watermark_scan`: tag/comment pattern matching with whitelist
+- [x] 4.2 Implement `M2_identifier_gaps`: ISRC/catalog/UPC presence check
+- [x] 4.3 Implement `M3_cover_provenance`: embedded artwork EXIF extraction + software string scan
+- [x] 4.4 Implement `M4_naming_heuristics`: filename parsing (acronyms, suffixes, catalog patterns)
+- [x] 4.5 Write unit tests for each M-signal with mocked tag data
 
 ## 5. Scoring Engine (M1–M3)
 
