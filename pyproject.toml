@@ -22,6 +22,9 @@ ai-music-checker = "ai_music_checker.cli:main"
 where = ["."]
 include = ["ai_music_checker*"]
 
+[tool.setuptools.package-data]
+ai_music_checker = ["data/*"]
+
 [tool.ruff]
 line-length = 100
 target-version = "py310"

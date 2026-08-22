@@ -1,0 +1,131 @@
+{
+  "schema_version": "1.0.0",
+  "updated": "2026-08-22",
+  "license": "CC0-1.0",
+  "entries": [
+    {
+      "id": "clmx",
+      "name": "CLMX",
+      "aliases": ["Cli-Max", "@clmxmusic"],
+      "type": "artist",
+      "labels": ["Balearic Vibes Records"],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://pro.music-worx.com/release/freedom-balearic-vibes",
+          "note": "Music Worx editorial: 'Likely AI-assisted based on label-level evaluation and release patterns'",
+          "date": "2026-07"
+        },
+        {
+          "url": "https://www.beatport.com/release/freedom/6972369",
+          "note": "Beatport release June 2026; artist has no prior discography, 21 Instagram followers",
+          "date": "2026-06"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    },
+    {
+      "id": "the-velvet-sundown",
+      "name": "The Velvet Sundown",
+      "aliases": [],
+      "type": "artist",
+      "labels": [],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://www.theverge.com/2024/1/10/24033132/spotify-ai-generated-music-detection-flag",
+          "note": "The Verge investigation: AI-generated band with Spotify profiles, millions of streams",
+          "date": "2024-01"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    },
+    {
+      "id": "anna-indiana",
+      "name": "Anna Indiana",
+      "aliases": ["@annaindianaai"],
+      "type": "artist",
+      "labels": [],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://www.theverge.com/2023/11/10/23952124/anna-indiana-ai-singer-songwriter",
+          "note": "Fully AI-generated singer (music, lyrics, voice, visuals) - creator admitted AI origin",
+          "date": "2023-11"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    },
+    {
+      "id": "aiva",
+      "name": "AIVA",
+      "aliases": ["AIVA Technologies"],
+      "type": "project",
+      "labels": [],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://www.aiva.ai/",
+          "note": "Official AI composer platform - explicitly markets as AI-generated music",
+          "date": "2023-01"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    },
+    {
+      "id": "soundraw",
+      "name": "Soundraw",
+      "aliases": [],
+      "type": "project",
+      "labels": [],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://soundraw.io/",
+          "note": "AI music generator platform - explicitly markets as AI-generated royalty-free music",
+          "date": "2023-01"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    },
+    {
+      "id": "boomy",
+      "name": "Boomy",
+      "aliases": [],
+      "type": "project",
+      "labels": [],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://boomy.com/",
+          "note": "AI music creation platform - explicitly markets as AI-generated music",
+          "date": "2023-01"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    },
+    {
+      "id": "mubert",
+      "name": "Mubert",
+      "aliases": [],
+      "type": "project",
+      "labels": [],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://mubert.com/",
+          "note": "AI generative music platform - explicitly markets as AI-generated streaming music",
+          "date": "2023-01"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    }
+  ]
+}

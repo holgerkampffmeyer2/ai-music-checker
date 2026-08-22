@@ -1,5 +1,10 @@
 # ai-music-checker
 
+![AI Music Checker](assets/ai-music-checker.png)
+[![Python Version](https://img.shields.io/badge/python-3.9%2B-blue)](https://github.com/holgerkampffmeyer2/ai-music-checker)
+[![License](https://img.shields.io/github/license/holgerkampffmeyer2/wav-to-aac-converter)](https://github.com/holgerkampffmeyer2/ai-music-checker)
+[![Tests](https://github.com/holgerkampffmeyer2/ai-music-checker/actions/workflows/test.yml/badge.svg)](https://github.com/holgerkampffmeyer2ai-music-checker/actions/workflows/test.yml)
+
 Forensic heuristic tool to estimate AI-generation likelihood of music files
 (MP3/WAV/FLAC/AIFF). Combines technical signal analysis, metadata inspection,
 and optional online context research.
