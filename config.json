@@ -22,5 +22,12 @@
   "metadata_sources": ["musicbrainz", "discogs", "soundcloud"],
   "soundcloud_client_id_env": "SOUNDCLOUD_CLIENT_ID",
   "request_timeout_s": 10,
-  "retry_attempts": 3
+  "retry_attempts": 3,
+  "community_db": {
+    "enabled": true,
+    "url": "https://raw.githubusercontent.com/holgerkampffmeyer2/ai-artists-db/main/known_ai_artists.json",
+    "ttl_hours": 24,
+    "fuzzy_enabled": false,
+    "fuzzy_threshold": 0.9
+  }
 }

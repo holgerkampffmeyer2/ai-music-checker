@@ -50,12 +50,16 @@ ai-music-checker/
 │   │   ├── technical.py    T1–T7  (local, always on)
 │   │   ├── metadata.py     M1–M4  (local, always on)
 │   │   └── context.py      C1–C5  (only with --online)
+│   ├── community_db.py  curated AI-artist DB fetch/cache/lookup (TDD)
 │   ├── scoring.py     normalization, weighting, verdict, confidence
 │   ├── report.py      JSON emitter (schema v1)
 │   └── ui.py          ASCII gauge / bars / indicator list
 └── tests/
     ├── fixtures/      small synthetic + reference tracks
-    └── test_scoring.py
+    ├── test_scoring.py
+    ├── test_community_db.py          # unit tests for community DB
+    └── integration/
+        └── test_context_with_community_db.py
 ```
 
 ## 4. Criteria Catalog (checklist)
@@ -93,7 +97,62 @@ thresholds documented per item and tunable via config.json.
 | C2  | Label pattern | Discogs/MB label stats: cadence, one-release-artist ratio | content-farm signature | 5 | 0.7 |
 | C3  | Release DB presence | MB/Discogs/Beatport existence + age | absent everywhere | 4 | 0.6 |
 | C4  | Press text / editorial tags | optional page URL input; buzzword density + editorial "AI-assisted" tags found in page | explicit tag / generic text | 3 | 0.6 |
-| C5  | Community AI databases | curated local JSON list + best-effort isthisbandai.org lookup | listed | 4 | 0.8 |
+| C5  | Community AI databases | curated JSON DB (hosted on GitHub, configurable URL) + best-effort isthisbandai.org lookup | artist listed in DB with confidence ≥ medium | 4 | 0.8 |
+
+### Community AI Database — C5 Detail
+
+**Data model** (`schema_version: 1.0`):
+
+```json
+{
+  "schema_version": "1.0",
+  "updated": "2026-08-22",
+  "license": "CC0-1.0",
+  "entries": [
+    {
+      "id": "clmx",
+      "name": "CLMX",
+      "aliases": ["Cli-Max", "@clmxmusic"],
+      "type": "artist",
+      "labels": ["Balearic Vibes Records"],
+      "ai_confidence": "high",
+      "evidence": [
+        {
+          "url": "https://pro.music-worx.com/release/freedom-balearic-vibes",
+          "note": "editorial 'Likely AI-assisted'",
+          "date": "2026-07"
+        }
+      ],
+      "added": "2026-08-22",
+      "verified": "2026-08-22"
+    }
+  ]
+}
+```
+
+- `ai_confidence`: `"high" | "medium" | "low"` → C5 subscore 1.0 / 0.7 / 0.4
+- `evidence`: array of source URLs + notes for auditability
+- Matching: exact casefold on `name` + `aliases`; fuzzy opt-in via config (threshold ≥0.9 Jaro-Winkler, flagged as `"fuzzy": true` in result)
+
+**Hosting:** Separate GitHub repo `holgerkampffmeyer2/ai-artists-db` with:
+- `known_ai_artists.json` at root
+- `schema.json` (JSON Schema) + CI workflow `.github/workflows/validate.yml` running `jsonschema` validation on PRs
+- README with contribution guide (PR template: name, aliases, evidence URLs, confidence justification)
+- Default fetch URL in config: `https://raw.githubusercontent.com/holgerkampffmeyer2/ai-artists-db/main/known_ai_artists.json`
+
+**Tool integration** (`ai_music_checker/community_db.py`):
+
+```python
+class CommunityDB:
+    def __init__(self, config): ...
+    def load_bundled(self) -> Db: ...           # shipped with package
+    def fetch_remote(self, url: str) -> Db: ... # with ETag/Last-Modified + TTL
+    def load_or_fetch(self) -> Db: ...          # tries remote → cache → bundled
+    def lookup(self, artist: str, aliases: List[str]) -> Match | None: ...
+    def subscore(self, match: Match) -> float: ...  # high=1.0, med=0.7, low=0.4
+```
+
+**Cache:** `~/.cache/ai-music-checker/known_ai_artists.json` + `fetched_at` timestamp; TTL config `community_db.ttl_hours` (default 24h). Offline → use stale cache + note in analysis.
 
 ## 5. Scoring Model
 
@@ -146,6 +205,16 @@ Top indicators = largest positive/negative `W_i*(s_i−0.5)` contributions.
       "reliability": 0.85,
       "available": true,
       "note": "no MB/Discogs entity"
+    },
+    {
+      "id": "C5",
+      "name": "community_ai_db",
+      "value": 1.0,
+      "subscore": 1.0,
+      "weight": 4,
+      "reliability": 0.8,
+      "available": true,
+      "note": "CLMX listed in community DB (high confidence)"
     }
   ],
   "groups": {
@@ -159,7 +228,8 @@ Top indicators = largest positive/negative `W_i*(s_i−0.5)` contributions.
     "confidence": 0.61,
     "top_indicators": [
       { "id": "C1", "delta": "+0.09", "text": "No artist history (MusicBrainz/Discogs)" },
-      { "id": "C2", "delta": "+0.08", "text": "Label: >20 releases/month, many one-hit projects" }
+      { "id": "C2", "delta": "+0.08", "text": "Label: >20 releases/month, many one-hit projects" },
+      { "id": "C5", "delta": "+0.08", "text": "CLMX listed in community AI DB (high)" }
     ],
     "manual_research_hints": [
       "search 'CLMX' on Discogs",
@@ -185,6 +255,7 @@ $ ai-music-checker "CLMX - Freedom.mp3" --json freedom.analysis.json [--online]
 │  ▲ +0.09  C1 no artist history (MusicBrainz/Discogs)                   │
 │  ▲ +0.08  C2 label: >20 releases/month, many one-hit projects          │
 │  ▲ +0.07  C4 editorial tag "likely AI-assisted"                        │
+│  ▲ +0.08  C5 CLMX listed in community AI DB (high confidence)          │
 │  ▼ -0.03  T1 full spectrum beyond 19 kHz                               │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -218,7 +289,14 @@ ai-music-checker: 72% AI  ██████████████░░░░
   "metadata_sources": ["musicbrainz","discogs","soundcloud"],
   "soundcloud_client_id_env": "SOUNDCLOUD_CLIENT_ID",
   "request_timeout_s": 10,
-  "retry_attempts": 3
+  "retry_attempts": 3,
+  "community_db": {
+    "enabled": true,
+    "url": "https://raw.githubusercontent.com/holgerkampffmeyer2/ai-artists-db/main/known_ai_artists.json",
+    "ttl_hours": 24,
+    "fuzzy_enabled": false,
+    "fuzzy_threshold": 0.9
+  }
 }
 ```
 
@@ -255,19 +333,33 @@ is reused as-is. If the key is present → include SC footprint signal (profile 
 | M3 | Implement metadata signals M1–M4 in `signals/metadata.py` |
 | M4 | ASCII UI: gauge, group bars, top-indicator list, `--brief` mode |
 | M5 | Context module `--online`: MusicBrainz/Discogs/SoundCloud lookups + caches, manual-research hints |
-| M6 | Golden-file tests: synthetic fixtures + reference track (Freedom.mp3); CI smoke test |
-| M7 | Polish: config override precedence, help text, error messages, README usage |
+| M6 | **Community DB (TDD):** write unit tests `test_community_db.py` → implement `community_db.py` → write integration tests `test_context_with_community_db.py` → wire C5 into `signals/context.py` → seed `ai-artists-db` repo with schema + CI + initial entries |
+| M7 | Golden-file tests: synthetic fixtures + reference track (Freedom.mp3); CI smoke test |
+| M8 | Polish: config override precedence, help text, error messages, README usage |
 
 ## 11. Test Strategy
 
 - **Unit:** scoring math (golden values for known inputs), normalization edge cases, weight renormalization when groups disabled
-- **Integration:** synthetic audio fixtures generated by ffmpeg
+- **Community DB unit tests** (`tests/test_community_db.py`):
+  - Schema validation: valid entry passes; rejects missing fields, invalid `ai_confidence` enum, duplicate `id`, malformed URLs
+  - Lookup: exact match, case-insensitive, alias match, fuzzy above threshold (flagged), no-match returns None
+  - Subscore mapping: high→1.0, medium→0.7, low→0.4
+  - Bundled load reads package resource
+  - Remote fetch: ETag 304 returns cached; timeout falls back to cache; corrupt cache falls back to bundled
+  - Config override: custom `url`, `enabled: false` skips network entirely
+- **Integration tests** (`tests/integration/test_context_with_community_db.py`):
+  - `--online` produces C5 signal in analysis JSON with subscore & note
+  - Offline fallback to bundled still produces C5
+  - `community_db.enabled: false` → no C5 signal
+  - `--brief` output includes C5 delta
+  - Fixture "CLMX" → C5 high (golden regression anchor)
+- **Audio fixtures** (generated by ffmpeg):
   - sine sweep 20Hz–22kHz (full spectrum reference)
   - lowpassed @14kHz (mimics Suno-style cutoff)
   - white noise + digital silence chunks (T4)
   - dual-mono vs true stereo (T3)
-- **Fixtures:** copy of `BV062026_CLMX_-_Freedom_(XTD_Version).mp3` → expected offline score ~0.35–0.45 (metadata+naming only); with `--online` expected ≥0.60 LIKELY AI-ASSISTED (regression anchor)
-- **CI:** `pytest -v` on push; lint `ruff` / `mypy` (if added)
+- **Reference fixture:** copy of `BV062026_CLMX_-_Freedom_(XTD_Version).mp3` → expected offline score ~0.35–0.45; with `--online` expected ≥0.60 LIKELY AI-ASSISTED
+- **CI:** `pytest -v` on push; lint `ruff` / `mypy`
 
 ## 12. Limits, Risks, Legal Notes
 
@@ -276,6 +368,7 @@ is reused as-is. If the key is present → include SC footprint signal (profile 
 - **API rate limits:** MusicBrainz 1 req/s (set UA), Discogs 60 req/min (token optional), SoundCloud undocumented → implement polite backoff + caching
 - **Scraping fragility:** `isthisbandai.org` best-effort; maintain local curated JSON list as primary
 - **Legal:** only reads public metadata; no DRM circumvention; user responsible for files analyzed
+- **Community DB:** entries are curated claims with evidence URLs; not legal determinations; CC0 license maximizes reuse
 - **Distribution:** single-file script or `pipx` install; no compilation needed
 
 ## 13. Open Review Questions
@@ -283,6 +376,9 @@ is reused as-is. If the key is present → include SC footprint signal (profile 
 1. Verdict labels: German or English? (CLI outputs currently English — consistent with docs decision)
 2. Confidence formula weights (0.6/0.4 coverage/consistency) — tune after M2–M3?
 3. Should T4 seam detection use numpy autocorrelation (adds dep) or pure ffmpeg silencedetect (simpler, weaker)?
-4. Community DB: ship a small curated JSON with known AI artists, or rely only on online lookup?
-5. Batch mode: process multiple files sequentially? Parallel? Output summary table?
-6. Config precedence: file → env vars → CLI flags? Define clearly.
+4. **Community DB repo:** separate `holgerkampffmeyer2/ai-artists-db` (recommended) or same repo `data/`? Confirm org/account.
+5. **Seed data:** research & seed ~10–15 documented entries during implementation (e.g., The Velvet Sundown, Anna Indiana) or scaffold schema + placeholders for later curation?
+6. **License:** CC0-1.0 (public domain dedication) or CC-BY-4.0 (attribution)? CC0 maximizes reuse.
+7. **Matching strictness:** default exact+alias only; fuzzy opt-in via config — acceptable?
+8. Batch mode: process multiple files sequentially? Parallel? Output summary table?
+9. Config precedence: file → env vars → CLI flags? Define clearly.
