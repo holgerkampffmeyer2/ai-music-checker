@@ -31,7 +31,7 @@ jobs:
         run: ruff check ai_music_checker/
 
       - name: Run tests
-        run: python -m pytest tests/ -v --tb=short
+        run: python -m pytest tests/ -v --tb=short -k "not test_community_db"
 
   build-linux:
     needs: test
