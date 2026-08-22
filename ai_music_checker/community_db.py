@@ -2,13 +2,10 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
-from urllib.parse import urlparse
 
 # Import vendored utils
 from ai_music_checker.lib.http import fetch_url
@@ -36,7 +33,7 @@ class CommunityDB:
     entries: list[DBEntry]
 
     @classmethod
-    def from_dict(cls, data: dict) -> "CommunityDB":
+    def from_dict(cls, data: dict) -> CommunityDB:
         return cls(
             schema_version=data["schema_version"],
             updated=data["updated"],
@@ -44,7 +41,7 @@ class CommunityDB:
             entries=[DBEntry(**e) for e in data["entries"]]
         )
 
-    def lookup(self, artist: str, aliases: list[str], fuzzy: bool = False, threshold: float = 0.9) -> Optional["Match"]:
+    def lookup(self, artist: str, aliases: list[str], fuzzy: bool = False, threshold: float = 0.9) -> Match | None:
         """Find matching entry. Exact casefold on name + aliases first, then fuzzy if enabled."""
         search_terms = [artist] + aliases
         search_terms = [s.strip().lower() for s in search_terms if s.strip()]
@@ -94,7 +91,7 @@ def validate_entry(entry: dict) -> bool:
             raise ValueError(f"Missing required field: {field}")
 
     if entry["ai_confidence"] not in ("high", "medium", "low"):
-        raise ValueError(f"ai_confidence must be one of: high, medium, low")
+        raise ValueError("ai_confidence must be one of: high, medium, low")
 
     if not isinstance(entry["aliases"], list):
         raise ValueError("aliases must be a list")
@@ -106,12 +103,16 @@ def validate_entry(entry: dict) -> bool:
         raise ValueError("evidence must be a non-empty list")
 
     for ev in entry["evidence"]:
-        if not all(k in ev for k in ("url", "note", "date")):
-            raise ValueError("evidence items must have url, note, date")
+        if not all(k in ev for k in ("url", "note", "date", "last_checked", "status")):
+            raise ValueError("evidence items must have url, note, date, last_checked, status")
         if not re.match(r"^https?://", ev["url"]):
             raise ValueError(f"Invalid URL: {ev['url']}")
         if not re.match(r"^\d{4}-\d{2}$", ev["date"]):
             raise ValueError(f"Invalid evidence date format (expected YYYY-MM): {ev['date']}")
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", ev["last_checked"]):
+            raise ValueError(f"Invalid last_checked format (expected YYYY-MM-DD): {ev['last_checked']}")
+        if ev["status"] not in ("valid", "broken", "outdated"):
+            raise ValueError(f"Invalid status: {ev['status']}")
 
     if not re.match(r"^\d{4}-\d{2}-\d{2}$", entry["added"]):
         raise ValueError(f"Invalid added date format: {entry['added']}")
@@ -153,9 +154,9 @@ def get_db_cache_path() -> Path:
 def load_bundled() -> CommunityDB:
     """Load bundled database from package resources."""
     # For now, try to load from installed package or local data dir
-    import importlib.resources as resources
     try:
-        data = resources.read_text("ai_music_checker.data", "known_ai_artists.json")
+        from importlib.resources import files
+        data = files("ai_music_checker.data").joinpath("known_ai_artists.json").read_text()
         return CommunityDB.from_dict(json.loads(data))
     except Exception:
         # Fallback: try local data file
@@ -172,7 +173,7 @@ def load_bundled() -> CommunityDB:
         )
 
 
-def fetch_remote(url: str, cache_path: Optional[Path] = None) -> Optional[CommunityDB]:
+def fetch_remote(url: str, cache_path: Path | None = None) -> CommunityDB | None:
     """Fetch remote DB with ETag/Last-Modified caching."""
     if cache_path is None:
         cache_path = get_db_cache_path()
@@ -186,7 +187,7 @@ def fetch_remote(url: str, cache_path: Optional[Path] = None) -> Optional[Commun
 
     try:
         content = fetch_url(url, timeout=10)
-    except (TimeoutError, Exception) as e:
+    except (TimeoutError, Exception):
         # Network failure (timeout, DNS, connection refused, etc.) - try cache
         if cache_path.exists():
             try:
@@ -214,7 +215,7 @@ def fetch_remote(url: str, cache_path: Optional[Path] = None) -> Optional[Commun
         return None
 
 
-def load_or_fetch(config: dict) -> Optional[CommunityDB]:
+def load_or_fetch(config: dict) -> CommunityDB | None:
     """Load DB: remote (with cache fallback) or bundled."""
     if not config.get("enabled", True):
         return load_bundled()
@@ -227,6 +228,6 @@ def load_or_fetch(config: dict) -> Optional[CommunityDB]:
 
 
 def lookup_artist(db: CommunityDB, artist: str, aliases: list[str],
-                  fuzzy: bool = False, threshold: float = 0.9) -> Optional[Match]:
+                  fuzzy: bool = False, threshold: float = 0.9) -> Match | None:
     """Convenience function for lookup."""
     return db.lookup(artist, aliases, fuzzy, threshold)

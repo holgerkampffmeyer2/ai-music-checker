@@ -20,6 +20,7 @@ class SignalResult:
     available: bool = True  # False if dependency missing (e.g. no network)
     note: str = ""   # human-readable detail
     group: str = ""  # "technical" | "metadata" | "context"
+    evidence: list[dict[str, Any]] | None = None  # evidence URLs with date and status
 
 
 @runtime_checkable
@@ -35,7 +36,7 @@ class Signal(Protocol):
     def available(self, config: Any) -> bool: ...
 
 
-SIGNAL_REGISTRY: List[Any] = []
+SIGNAL_REGISTRY: list[Any] = []
 
 
 def register(signal: Any) -> Any:
@@ -47,12 +48,25 @@ def register(signal: Any) -> Any:
 def run_all_signals(
     probe: FileProbe,
     config: Any,
-    registry: List[Any] | None = None,
-) -> List[SignalResult]:
+    registry: list[Any] | None = None,
+) -> list[SignalResult]:
     """Run all registry signals where available(config), preserving order."""
-    results: List[SignalResult] = []
+    results: list[SignalResult] = []
     for signal in registry if registry is not None else SIGNAL_REGISTRY:
         if not signal.available(config):
             continue
         results.append(signal.compute(probe, config))
     return results
+
+
+# Auto-register built-in signals
+def _register_builtin_signals() -> None:
+    from ai_music_checker.signals.metadata import METADATA_SIGNALS
+    from ai_music_checker.signals.technical import TECHNICAL_SIGNALS
+    for sig in TECHNICAL_SIGNALS:
+        register(sig)
+    for sig in METADATA_SIGNALS:
+        register(sig)
+
+
+_register_builtin_signals()

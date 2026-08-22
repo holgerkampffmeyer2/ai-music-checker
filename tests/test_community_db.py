@@ -37,7 +37,8 @@ class TestSchemaValidation:
             "type": "artist",
             "labels": ["Label A"],
             "ai_confidence": "high",
-            "evidence": [{"url": "https://example.com", "note": "Evidence note", "date": "2024-01"}],
+            "evidence": [{"url": "https://example.com", "note": "Evidence note", "date": "2024-01",
+                          "last_checked": "2024-01-20", "status": "valid"}],
             "added": "2024-01-15",
             "verified": "2024-01-20"
         }
@@ -58,7 +59,8 @@ class TestSchemaValidation:
         entry = {
             "id": "test", "name": "Test", "aliases": [], "type": "artist",
             "labels": [], "ai_confidence": "very-high",  # invalid
-            "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01"}],
+            "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01",
+                          "last_checked": "2024-01-20", "status": "valid"}],
             "added": "2024-01-01", "verified": "2024-01-01"
         }
         with pytest.raises(ValueError, match="ai_confidence must be one of"):
@@ -72,10 +74,12 @@ class TestSchemaValidation:
             "license": "CC0-1.0",
             "entries": [
                 {"id": "dup", "name": "A", "aliases": [], "type": "artist", "labels": [], "ai_confidence": "high",
-                 "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01"}],
+                 "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01",
+                               "last_checked": "2024-01-20", "status": "valid"}],
                  "added": "2024-01-01", "verified": "2024-01-01"},
                 {"id": "dup", "name": "B", "aliases": [], "type": "artist", "labels": [], "ai_confidence": "high",
-                 "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01"}],
+                 "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01",
+                               "last_checked": "2024-01-20", "status": "valid"}],
                  "added": "2024-01-01", "verified": "2024-01-01"},
             ]
         }
@@ -87,7 +91,8 @@ class TestSchemaValidation:
         entry = {
             "id": "test", "name": "Test", "aliases": [], "type": "artist", "labels": [],
             "ai_confidence": "high",
-            "evidence": [{"url": "not-a-url", "note": "n", "date": "2024-01"}],
+            "evidence": [{"url": "not-a-url", "note": "n", "date": "2024-01",
+                          "last_checked": "2024-01-20", "status": "valid"}],
             "added": "2024-01-01", "verified": "2024-01-01"
         }
         with pytest.raises(ValueError, match="Invalid URL"):
@@ -112,7 +117,8 @@ class TestLookup:
                     "type": "artist",
                     "labels": ["Balearic Vibes"],
                     "ai_confidence": "high",
-                    "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01"}],
+                    "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01",
+                                  "last_checked": "2024-01-20", "status": "valid"}],
                     "added": "2024-01-01", "verified": "2024-01-01"
                 },
                 {
@@ -122,7 +128,8 @@ class TestLookup:
                     "type": "artist",
                     "labels": [],
                     "ai_confidence": "medium",
-                    "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01"}],
+                    "evidence": [{"url": "https://x.com", "note": "n", "date": "2024-01",
+                                  "last_checked": "2024-01-20", "status": "valid"}],
                     "added": "2024-01-01", "verified": "2024-01-01"
                 }
             ]
@@ -174,7 +181,8 @@ class TestLookup:
             type="artist",
             labels=[],
             ai_confidence="low",
-            evidence=[{"url": "https://x.com", "note": "n", "date": "2024-01"}],
+            evidence=[{"url": "https://x.com", "note": "n", "date": "2024-01",
+                        "last_checked": "2024-01-20", "status": "valid"}],
             added="2024-02-01", verified="2024-02-01"
         ))
         from ai_music_checker.community_db import lookup_artist

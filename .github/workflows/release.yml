@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: pip install pytest ruff
+
+      - name: Lint
+        run: ruff check ai_music_checker/
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short
+
+  build-linux:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyinstaller
+
+      - name: Download ffmpeg (static)
+        run: |
+          curl -L -o ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          tar xf ffmpeg.tar.xz
+          cp ffmpeg-*-static/ffmpeg pyinstaller/ffmpeg
+          cp ffmpeg-*-static/ffprobe pyinstaller/ffprobe
+          chmod +x pyinstaller/ffmpeg pyinstaller/ffprobe
+
+      - name: Build binary
+        run: pyinstaller pyinstaller/ai-music-checker.spec
+
+      - name: Create archive
+        run: |
+          cd dist/ai-music-checker
+          tar czf ../ai-music-checker-linux-amd64.tar.gz *
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-amd64
+          path: dist/ai-music-checker-linux-amd64.tar.gz
+
+  build-macos:
+    needs: test
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [arm64, x86_64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pyinstaller
+
+      - name: Download ffmpeg
+        run: |
+          if [ "${{ matrix.arch }}" = "arm64" ]; then
+            curl -L -o ffmpeg.zip https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip
+            curl -L -o ffprobe.zip https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip
+          else
+            curl -L -o ffmpeg.zip "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip?arch=x86_64"
+            curl -L -o ffprobe.zip "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip?arch=x86_64"
+          fi
+          unzip ffmpeg.zip -d pyinstaller/
+          unzip ffprobe.zip -d pyinstaller/
+          chmod +x pyinstaller/ffmpeg pyinstaller/ffprobe
+
+      - name: Build binary
+        run: pyinstaller pyinstaller/ai-music-checker.spec
+
+      - name: Create archive
+        run: |
+          cd dist/ai-music-checker
+          tar czf ../ai-music-checker-macos-${{ matrix.arch }}.tar.gz *
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-${{ matrix.arch }}
+          path: dist/ai-music-checker-macos-${{ matrix.arch }}.tar.gz
+
+  release:
+    needs: [build-linux, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            linux-amd64/ai-music-checker-linux-amd64.tar.gz
+            macos-arm64/ai-music-checker-macos-arm64.tar.gz
+            macos-x86_64/ai-music-checker-macos-x86_64.tar.gz
+          generate_release_notes: true
+          draft: false
+          prerelease: false
