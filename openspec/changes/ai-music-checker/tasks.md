@@ -4,7 +4,7 @@
 
 - [ ] 1.1 Initialize Python package structure: `ai_music_checker/` with `__init__.py`, `cli.py`, `probe.py`, `config.py`, `scoring.py`, `report.py`, `ui.py`
 - [ ] 1.2 Create `lib/` vendor directory: copy `shell.py`, `http.py`, `match.py` from wav-to-aac-converter with provenance comments
-- [ ] 1.3 Write `config.py`: Config dataclass + loader with precedence (CLI > env > config.json > defaults)
+- [x] 1.3 Write `config.py`: Config dataclass + loader with precedence (CLI > env > config.json > defaults)
 - [ ] 1.4 Write `pyproject.toml`: dependencies, console script `ai-music-checker`, dev deps (pytest, ruff, mypy)
 - [ ] 1.5 Write default `config.json` with all weights, thresholds, community_db, llm_judge sections
 - [ ] 1.6 Write `.gitignore`, `LICENSE` (MIT), `README.md` (link to PLAN.md)
@@ -38,10 +38,10 @@
 
 ## 5. Scoring Engine (M1–M3)
 
-- [ ] 5.1 Implement `effective_weight`, `group_score`, `aggregate`, `confidence`, `consistency` in `scoring.py`
-- [ ] 5.2 Define verdict bands: UNAUFFÄLLIG ≤0.20, EHER MENSCHLICH 0.21–0.40, UNKLAR 0.41–0.60, LIKELY AI-ASSISTED 0.61–0.80, VERY LIKELY AI >0.80
-- [ ] 5.3 Implement top-indicators extraction: largest `W_i*(s_i-0.5)` contributions
-- [ ] 5.4 Write unit tests: golden values for known input combinations, edge cases (all unavailable, zero weights, renormalization)
+- [x] 5.1 Implement `effective_weight`, `group_score`, `aggregate`, `confidence`, `consistency` in `scoring.py`
+- [x] 5.2 Define verdict bands: UNAUFFÄLLIG ≤0.20, EHER MENSCHLICH 0.21–0.40, UNKLAR 0.41–0.60, LIKELY AI-ASSISTED 0.61–0.80, VERY LIKELY AI >0.80
+- [x] 5.3 Implement top-indicators extraction: largest `W_i*(s_i-0.5)` contributions
+- [x] 5.4 Write unit tests: golden values for known input combinations, edge cases (all unavailable, zero weights, renormalization)
 
 ## 6. Report & JSON Output (M1–M3)
 

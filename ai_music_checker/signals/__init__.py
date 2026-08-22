@@ -19,6 +19,7 @@ class SignalResult:
     reliability: float  # from config
     available: bool = True  # False if dependency missing (e.g. no network)
     note: str = ""   # human-readable detail
+    group: str = ""  # "technical" | "metadata" | "context"
 
 
 @runtime_checkable
