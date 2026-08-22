@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """ffprobe wrapper: FileProbe dataclass + probe_file()."""
 from __future__ import annotations
 

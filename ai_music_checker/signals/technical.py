@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Technical signals T1–T7 (ffmpeg-driven, local)."""
 from __future__ import annotations
 

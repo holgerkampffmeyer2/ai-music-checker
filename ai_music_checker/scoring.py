@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Pure scoring functions: weights, group scores, aggregation, verdict, confidence."""
 from __future__ import annotations
 

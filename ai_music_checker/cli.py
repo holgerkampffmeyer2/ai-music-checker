@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """CLI entry point for ai-music-checker."""
 from __future__ import annotations
 

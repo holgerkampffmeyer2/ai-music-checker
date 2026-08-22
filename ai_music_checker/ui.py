@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """ASCII UI renderer for ai-music-checker."""
 from __future__ import annotations
 

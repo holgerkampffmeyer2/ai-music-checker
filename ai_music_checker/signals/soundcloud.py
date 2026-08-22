@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """SoundCloud-specific signal -- C6: SoundCloud fingerprint.
 
 Uses SoundCloud API v2 with confidence scoring to analyze tracks.

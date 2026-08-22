@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Context signals C1–C5 (online, optional)."""
 from __future__ import annotations
 

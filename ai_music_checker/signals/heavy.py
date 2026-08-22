@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Heavy signals T8–T10, T12 (compute-intensive, optional).
 
 These signals require heavier processing (FFT, phase analysis, onset detection)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Signal protocol, registry and runner."""
 from __future__ import annotations
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """JSON report emitter (schema v1.0)."""
 from __future__ import annotations
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Metadata signals M1–M4 (local, always on).
 
 Weights/reliabilities per PLAN.md §4:

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Config dataclass + loader with precedence CLI > env (AIMC_) > config.json > defaults."""
 from __future__ import annotations
 
