@@ -245,11 +245,11 @@ class T11(BaseSignal):
         return True
 
     def compute(self, probe: FileProbe, config: Config) -> SignalResult:
-        """Estimate spectral flatness via ffmpeg loudness variance."""
+        """Estimate spectral flatness via ebur128 loudness variance proxy."""
         cmd = (
             f"ffmpeg -i {shq(str(probe.path))} -vn "
-            f"-af astats=metadata=1:reset=1 "
-            f"-f null - 2>&1"
+            f"-af ebur128=peak=true "
+            f"-f null -"
         )
         ok, _out, _err = run_cmd(cmd, timeout=120)
         if not ok:
@@ -258,33 +258,34 @@ class T11(BaseSignal):
                 weight=self.weight, reliability=self.reliability, available=False,
                 note="spectral flatness analysis failed", group=self.group,
             )
-        # Simplified proxy: use RMS variance
+        import re
+        import statistics
         vals = []
         for line in _err.splitlines():
-            if "RMS level dB:" in line:
-                try:
-                    v = float(line.split("RMS level dB:")[1].split()[0])
-                except ValueError:
-                    continue
-                vals.append(v)
+            m = re.search(r"I:\s*(-?\d+\.\d+)\s*LUFS", line)
+            if not m:
+                continue
+            try:
+                v = float(m.group(1))
+            except ValueError:
+                continue
+            vals.append(v)
         if not vals:
             return SignalResult(
                 id=self.id, name=self.name, value=0.0, subscore=0.0,
                 weight=self.weight, reliability=self.reliability, available=True,
-                note="no RMS data", group=self.group,
+                note="no ebur128 data", group=self.group,
             )
-        import statistics
         std = statistics.pstdev(vals) if len(vals) > 1 else 0.0
-        # Lower std => flatter spectrum
-        if std < 3.0:
+        if std < 1.5:
             subscore = 0.7
-            note = f"spectral flatness high (std {std:.2f} dB)"
-        elif std < 6.0:
+            note = f"spectral flatness high (ebur128 std {std:.2f} LU)"
+        elif std < 3.0:
             subscore = 0.3
-            note = f"spectral variation moderate (std {std:.2f} dB)"
+            note = f"spectral variation moderate (ebur128 std {std:.2f} LU)"
         else:
             subscore = 0.0
-            note = f"spectral variation normal (std {std:.2f} dB)"
+            note = f"spectral variation normal (ebur128 std {std:.2f} LU)"
         return SignalResult(
             id=self.id, name=self.name, value=std, subscore=subscore,
             weight=self.weight, reliability=self.reliability, available=True,
