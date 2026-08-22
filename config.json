@@ -1,0 +1,26 @@
+{
+  "weights": {
+    "technical": 40,
+    "metadata": 25,
+    "context": 35
+  },
+  "criteria": {
+    "T1": { "threshold_khz": 16, "severe_khz": 14 },
+    "T2": { "crest_db_threshold": 8, "lra_lu_threshold": 3 },
+    "M1": {
+      "patterns": [
+        "suno", "udio", "stable audio", "riffusion", "musicgen",
+        "aiva", "soundraw", "boomy", "ecrett", "mubert", "loudly"
+      ],
+      "whitelist": ["promo-cloud", "konkah engine"]
+    },
+    "M4": {
+      "acronym_artist_max_len": 5,
+      "suffixes": ["xtd", "extended", "remix", "vocal", "instrumental", "radio edit"]
+    }
+  },
+  "metadata_sources": ["musicbrainz", "discogs", "soundcloud"],
+  "soundcloud_client_id_env": "SOUNDCLOUD_CLIENT_ID",
+  "request_timeout_s": 10,
+  "retry_attempts": 3
+}
