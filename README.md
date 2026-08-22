@@ -86,6 +86,10 @@ ai-music-checker track.mp3 --heavy
 
 # Full online + heavy mode
 ai-music-checker track.mp3 --online --heavy
+
+# LLM second opinion via agent skill — no external API key needed
+ai-music-checker track.mp3 --llm-agent
+ai-music-checker track.mp3 --llm-agent --online --heavy --json result.json
 ```
 
 ### Batch Processing
@@ -183,13 +187,14 @@ export AIMC_COMMUNITY_DB_ENABLED=true
 # Set custom SoundCloud client ID
 export SOUNDCLOUD_CLIENT_ID=your_client_id_here
 
-# Set LLM judge API key
+# LLM judge API key for external backends (openrouter/ollama)
+# Not needed for --llm-agent which uses the internal agent skill
 export OPENROUTER_API_KEY=your_key_here
 
 # Override group weights
-export AIMC_WEIGHTS_TECHNICAL=50
-export AIMC_WEIGHTS_METADATA=20
-export AIMC_WEIGHTS_CONTEXT=30
+export AIMC_WEIGHTS_TECHNICAL=15
+export AIMC_WEIGHTS_METADATA=5
+export AIMC_WEIGHTS_CONTEXT=80
 ```
 
 ## Signal Catalog
@@ -249,9 +254,9 @@ Precedence: **CLI > ENV (AIMC_) > config.json > defaults**
 ```json
 {
   "weights": {
-    "technical": 40,
-    "metadata": 25,
-    "context": 35
+    "technical": 15,
+    "metadata": 5,
+    "context": 80
   },
   "criteria": {
     "T1": {"threshold_khz": 16, "severe_khz": 14},
@@ -262,7 +267,7 @@ Precedence: **CLI > ENV (AIMC_) > config.json > defaults**
   },
   "community_db": {
     "enabled": true,
-    "url": "https://github.com/holgerkampffmeyer2/ai-artists-db/raw/main/known_ai_artists.json",
+    "url": "https://raw.githubusercontent.com/holgerkampffmeyer2/ai-artists-db/main/known_ai_artists.json",
     "ttl_hours": 24
   },
   "evidence": {
