@@ -23,9 +23,5 @@ jobs:
       - name: Lint
         run: ruff check ai_music_checker/
 
-      - name: Type check
-        run: mypy ai_music_checker --ignore-errors
-        continue-on-error: true
-
       - name: Run tests
         run: python -m pytest tests/ -v --tb=short
