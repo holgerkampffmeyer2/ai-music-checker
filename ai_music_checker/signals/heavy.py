@@ -264,9 +264,9 @@ class T11(BaseSignal):
             if "RMS level dB:" in line:
                 try:
                     v = float(line.split("RMS level dB:")[1].split()[0])
-                    vals.append(v)
-                except Exception:
-                    pass
+                except ValueError:
+                    continue
+                vals.append(v)
         if not vals:
             return SignalResult(
                 id=self.id, name=self.name, value=0.0, subscore=0.0,
