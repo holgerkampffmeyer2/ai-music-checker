@@ -199,7 +199,7 @@ export AIMC_WEIGHTS_CONTEXT=30
 | **Technical** | 40% | T1–T7 | Spectral, dynamics, stereo, noise, encoder, sample-rate, BPM |
 | **Metadata** | 25% | M1–M4 | Watermarks, identifiers, cover art, naming heuristics |
 | **Context** | 35% | C1–C5 | Artist footprint, label pattern, release DB, press text, community DB |
-| **Heavy** | opt-in | T8–T10, T12 | Spectral mirror, phase coherence, transients, stem separation |
+| **Heavy** | opt-in | T8–T13 | Spectral mirror, phase coherence, transients, spectral flatness, stem separation, HF resampling |
 | **SoundCloud** | opt-in | C6 | API v2 search with confidence scoring |
 
 ### Signal Details
@@ -216,7 +216,9 @@ export AIMC_WEIGHTS_CONTEXT=30
 | T8 | spectral_mirror | 7 | 0.6 | Nyquist/2 mirroring detection (heavy) |
 | T9 | phase_coherence | 6 | 0.5 | L/R channel phase correlation (heavy) |
 | T10 | transient_preservation | 5 | 0.4 | Onset detection and transient sharpness (heavy) |
+| T11 | spectral_flatness | 6 | 0.5 | Ebur128 loudness variance proxy for spectral flatness (heavy) |
 | T12 | stem_consistency | 4 | 0.3 | Stem separation analysis (placeholder) |
+| T13 | hf_resampling | 5 | 0.4 | High-frequency resampling cutoff detection (heavy) |
 | M1 | watermark_scan | 12 | 0.9 | Generator pattern matching in tags |
 | M2 | identifier_gaps | 7 | 0.5 | ISRC/catalog/UPC presence check |
 | M3 | cover_provenance | 5 | 0.6 | Embedded artwork EXIF/software strings |

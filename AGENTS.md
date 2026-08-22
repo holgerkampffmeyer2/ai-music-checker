@@ -82,6 +82,7 @@ ai-music-checker track.mp3 --no-color
 | `--json <path>` | JSON output (file path or `-` for stdout) |
 | `--online` | Enable context group (MusicBrainz, Discogs, Community DB) |
 | `--heavy` | Enable heavy signals (FFT, phase, transients) |
+| `--llm` | Enable optional LLM second-opinion judge |
 | `--no-color` | Disable ANSI color |
 | `--config <path>` | Custom config.json |
 | `--max-workers <n>` | Parallel workers (default 5) |
@@ -112,7 +113,7 @@ ai_music_checker/
 │   ├── technical.py    # T1–T7 (always on)
 │   ├── metadata.py     # M1–M4 (always on)
 │   ├── context.py      # C1–C5 (--online)
-│   ├── heavy.py        # T8–T12 (--heavy)
+│   ├── heavy.py        # T8–T13 (--heavy)
 │   └── soundcloud.py   # C6 (opt-in SoundCloud API)
 ├── community_db.py     # AI-artist DB fetch/cache/lookup
 ├── llm_judge.py        # Optional LLM second-opinion (--llm)
@@ -128,7 +129,7 @@ ai_music_checker/
 | Technical | 40% | T1–T7 | always on |
 | Metadata | 25% | M1–M4 | always on |
 | Context | 35% | C1–C5 | `--online` |
-| Heavy | opt-in | T8–T12 | `--heavy` |
+| Heavy | opt-in | T8–T13 | `--heavy` |
 
 ## Verdict Bands
 
