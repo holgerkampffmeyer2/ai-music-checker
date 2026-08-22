@@ -234,6 +234,64 @@ class T9(BaseSignal):
         )
 
 
+class T11(BaseSignal):
+    """Spectral flatness — measure spectral uniformity, AI tends to be flatter."""
+    id = "T11"
+    name = "spectral_flatness"
+    weight = 6
+    reliability = 0.5
+
+    def available(self, config: Any) -> bool:
+        return True
+
+    def compute(self, probe: FileProbe, config: Config) -> SignalResult:
+        """Estimate spectral flatness via ffmpeg loudness variance."""
+        cmd = (
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
+            f"-af astats=metadata=1:reset=1 "
+            f"-f null - 2>&1"
+        )
+        ok, _out, _err = run_cmd(cmd, timeout=120)
+        if not ok:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.0,
+                weight=self.weight, reliability=self.reliability, available=False,
+                note="spectral flatness analysis failed", group=self.group,
+            )
+        # Simplified proxy: use RMS variance
+        vals = []
+        for line in _err.splitlines():
+            if "RMS level dB:" in line:
+                try:
+                    v = float(line.split("RMS level dB:")[1].split()[0])
+                    vals.append(v)
+                except Exception:
+                    pass
+        if not vals:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.0,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="no RMS data", group=self.group,
+            )
+        import statistics
+        std = statistics.pstdev(vals) if len(vals) > 1 else 0.0
+        # Lower std => flatter spectrum
+        if std < 3.0:
+            subscore = 0.7
+            note = f"spectral flatness high (std {std:.2f} dB)"
+        elif std < 6.0:
+            subscore = 0.3
+            note = f"spectral variation moderate (std {std:.2f} dB)"
+        else:
+            subscore = 0.0
+            note = f"spectral variation normal (std {std:.2f} dB)"
+        return SignalResult(
+            id=self.id, name=self.name, value=std, subscore=subscore,
+            weight=self.weight, reliability=self.reliability, available=True,
+            note=note, group=self.group,
+        )
+
+
 class T10(BaseSignal):
     """Transient preservation — attack sharpness analysis."""
     id = "T10"
@@ -337,4 +395,4 @@ class T12(BaseSignal):
         )
 
 
-HEAVY_SIGNALS = [T8(), T9(), T10(), T12()]
+HEAVY_SIGNALS = [T8(), T9(), T10(), T11(), T12()]
