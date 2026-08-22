@@ -196,9 +196,9 @@ export AIMC_WEIGHTS_CONTEXT=30
 
 | Group | Weight | Signals | Description |
 |-------|--------|---------|-------------|
-| **Technical** | 40% | T1–T7 | Spectral, dynamics, stereo, noise, encoder, sample-rate, BPM |
-| **Metadata** | 25% | M1–M4 | Watermarks, identifiers, cover art, naming heuristics |
-| **Context** | 35% | C1–C5 | Artist footprint, label pattern, release DB, press text, community DB |
+| **Technical** | 15% | T1–T7 | Spectral, dynamics, stereo, noise, encoder, sample-rate, BPM |
+| **Metadata** | 5% | M1–M4 | Watermarks, identifiers, cover art, naming heuristics |
+| **Context** | 80% | C1–C5 | Artist footprint, label pattern, release DB, press text, community DB (strongest indicator) |
 | **Heavy** | opt-in | T8–T13 | Spectral mirror, phase coherence, transients, spectral flatness, stem separation, HF resampling |
 | **SoundCloud** | opt-in | C6 | API v2 search with confidence scoring |
 
@@ -232,13 +232,13 @@ export AIMC_WEIGHTS_CONTEXT=30
 
 ## Verdict Bands
 
-| Score Range | Verdict | German | Meaning |
-|-------------|---------|--------|---------|
-| ≤0.20 | UNAUFFÄLLIG | Unauffällig | No suspicious signals |
-| 0.21–0.40 | EHER MENSCHLICH | Eher menschlich | Likely human-made |
-| 0.41–0.60 | UNKLAR | Unklar | Uncertain |
-| 0.61–0.80 | LIKELY AI-ASSISTED | Wahrscheinlich KI-unterstützt | AI-assisted likely |
-| >0.80 | VERY LIKELY AI | Sehr wahrscheinlich KI | Very likely AI-generated |
+| Score Range | Verdict | Meaning |
+|-------------|---------|---------|
+| ≤0.20 | UNOBTRUSIVE | No suspicious signals |
+| 0.21–0.40 | LIKELY HUMAN | Likely human-made |
+| 0.41–0.60 | UNCLEAR | Uncertain |
+| 0.61–0.80 | LIKELY AI-ASSISTED | AI-assisted likely |
+| >0.80 | VERY LIKELY AI | Very likely AI-generated |
 
 ## Configuration
 

@@ -69,7 +69,7 @@ Subscore `s ∈ [0,1]` per criterion (1 = strong AI indication), piecewise-linea
 thresholds documented per item and tunable via config.json.
 `r` = reliability of the criterion itself, `w` = weight (sums to 100).
 
-### Group T — Technical (ffmpeg, local) — group weight 0.40
+### Group T — Technical (ffmpeg, local) — group weight 0.15
 
 | ID  | Criterion | Measurement | s→1 when | w | r |
 |-----|-----------|-------------|----------|---|---|
@@ -81,7 +81,7 @@ thresholds documented per item and tunable via config.json.
 | T6  | Sample-rate artifacts | spectral imaging above cutoff, upsample hints | images/mirrors indicating upscaled generation | 5 | 0.5 |
 | T7  | BPM/duration sanity | ffprobe/BPM est. vs claimed genre | implausible combos | 3 | 0.3 |
 
-### Group M — Metadata (local) — group weight 0.25
+### Group M — Metadata (local) — group weight 0.05
 
 | ID  | Criterion | Measurement | s→1 when | w | r |
 |-----|-----------|-------------|----------|---|---|
@@ -90,7 +90,7 @@ thresholds documented per item and tunable via config.json.
 | M3  | Cover provenance | embedded art EXIF/software strings (Midjourney, DALL·E…) | generator string found | 5 | 0.6 |
 | M4  | Naming heuristics | artist-name shape (short acronyms like CLMX), version-suffix patterns, catalog-number filenames | multiple heuristic hits | 6 | 0.4 |
 
-### Group C — Context (opt-in `--online`) — group weight 0.35
+### Group C — Context (opt-in `--online`) — group weight 0.80
 
 | ID  | Criterion | Source | s→1 when | w | r |
 |-----|-----------|--------|----------|---|---|
@@ -167,9 +167,9 @@ consistency= 1 - normalized mean pairwise |Δgroup_g| (agreement between signal 
 ```
 
 Verdict bands:
-- ≤0.20 UNAUFFÄLLIG
-- 0.21–0.40 EHER MENSCHLICH
-- 0.41–0.60 UNKLAR
+- ≤0.20 UNOBTRUSIVE
+- 0.21–0.40 LIKELY HUMAN
+- 0.41–0.60 UNCLEAR
 - 0.61–0.80 LIKELY AI-ASSISTED
 - >0.80 VERY LIKELY AI
 

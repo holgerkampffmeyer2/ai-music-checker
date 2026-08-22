@@ -11,9 +11,9 @@ The checker evaluates **16 signals** across three categories:
 
 | Category | Signals | Availability | Group Weight |
 |----------|---------|--------------|--------------|
-| Technical (T) | T1 — T7 | Always (ffmpeg/ffprobe) | 40 |
-| Metadata (M) | M1 — M4 | Always (local tag inspection) | 25 |
-| Context (C) | C1 — C5 | `--online` flag only | 35 |
+| Technical (T) | T1 — T7 | Always (ffmpeg/ffprobe) | 15 |
+| Metadata (M) | M1 — M4 | Always (local tag inspection) | 5 |
+| Context (C) | C1 — C5 | `--online` flag only | 80 |
 
 Each signal produces a **subscore** `s` in the range `[0.0, 1.0]` where:
 
@@ -32,9 +32,9 @@ final_probability = Σ(group_weight_g × group_score_g) / Σ(group_weight_g)
 
 | AI Probability | Verdict |
 |----------------|---------|
-| ≤ 0.20 | UNAUFFÄSSIG (unremarkable) |
-| 0.21 – 0.40 | EHER MENSCHLICH (likely human) |
-| 0.41 – 0.60 | UNKLAR (unclear) |
+| ≤ 0.20 | UNOBTRUSIVE (unremarkable) |
+| 0.21 – 0.40 | LIKELY HUMAN (likely human) |
+| 0.41 – 0.60 | UNCLEAR (unclear) |
 | 0.61 – 0.80 | LIKELY AI-ASSISTED |
 | > 0.80 | VERY LIKELY AI |
 

@@ -126,18 +126,18 @@ ai_music_checker/
 
 | Group | Weight | Signals | Mode |
 |-------|--------|---------|------|
-| Technical | 40% | T1–T7 | always on |
-| Metadata | 25% | M1–M4 | always on |
-| Context | 35% | C1–C5 | `--online` |
+| Technical | 15% | T1–T7 | always on |
+| Metadata | 5% | M1–M4 | always on |
+| Context | 80% | C1–C5 | `--online` |
 | Heavy | opt-in | T8–T13 | `--heavy` |
 
 ## Verdict Bands
 
 | Score | Verdict |
 |-------|---------|
-| ≤0.20 | UNAUFFÄLLIG |
-| 0.21–0.40 | EHER MENSCHLICH |
-| 0.41–0.60 | UNKLAR |
+| ≤0.20 | UNOBTRUSIVE |
+| 0.21–0.40 | LIKELY HUMAN |
+| 0.41–0.60 | UNCLEAR |
 | 0.61–0.80 | LIKELY AI-ASSISTED |
 | >0.80 | VERY LIKELY AI |
 

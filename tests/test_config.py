@@ -36,7 +36,7 @@ class TestDefaults:
         from ai_music_checker.config import Config
 
         cfg = Config.load(config_path=None, environ={})
-        assert cfg.weights == {"technical": 40, "metadata": 25, "context": 35}
+        assert cfg.weights == {"technical": 15, "metadata": 5, "context": 80}
         assert cfg.request_timeout_s == 10
         assert cfg.retry_attempts == 3
 

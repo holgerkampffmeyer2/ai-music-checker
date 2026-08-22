@@ -1,8 +1,8 @@
 {
   "weights": {
-    "technical": 40,
-    "metadata": 25,
-    "context": 35
+    "technical": 15,
+    "metadata": 5,
+    "context": 80
   },
   "criteria": {
     "T1": {

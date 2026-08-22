@@ -96,7 +96,7 @@ class C1(BaseContextSignal):
         try:
             q = quote_plus(artist)
             url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{q}&fmt=json&limit=1"
-            data = fetch_url(url, timeout=5)
+            data = fetch_url(url, timeout=15)
             if not data:
                 return None
             resp = json.loads(data)
@@ -111,7 +111,7 @@ class C1(BaseContextSignal):
         try:
             q = quote_plus(artist)
             url = f"https://api.discogs.com/database/search?q={q}&type=artist&per_page=1"
-            data = fetch_url(url, timeout=5)
+            data = fetch_url(url, timeout=15)
             if not data:
                 return None
             resp = json.loads(data)
@@ -129,7 +129,7 @@ class C1(BaseContextSignal):
         try:
             q = quote_plus(artist)
             url = f"https://api-v2.soundcloud.com/search?q={q}&client_id={client_id}&limit=1"
-            data = fetch_url(url, timeout=5)
+            data = fetch_url(url, timeout=15)
             if not data:
                 return None
             resp = json.loads(data)
@@ -187,7 +187,7 @@ class C2(BaseContextSignal):
     def _check_discogs_labels(self, artist: str) -> tuple[float, float, int] | None:
         try:
             # Search for artist
-            url = f"https://api.discogs.com/database/search?q={artist}&type=artist&per_page=1"
+            url = f"https://api.discogs.com/database/search?q={quote_plus(artist)}&type=artist&per_page=1"
             data = fetch_url(url, timeout=10)
             if not data:
                 return None
@@ -242,7 +242,7 @@ class C2(BaseContextSignal):
     
     def _check_musicbrainz_labels(self, artist: str) -> tuple[float, float, int] | None:
         try:
-            url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{artist}&fmt=json&limit=1"
+            url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{quote_plus(artist)}&fmt=json&limit=1"
             data = fetch_url(url, timeout=10)
             if not data:
                 return None
@@ -339,7 +339,9 @@ class C3(BaseContextSignal):
     
     def _check_musicbrainz_release(self, artist: str, title: str) -> int | None:
         try:
-            url = f"https://musicbrainz.org/ws/2/recording/?query=artist:{artist}%20AND%20recording:{title}&fmt=json&limit=1"
+            q_artist = quote_plus(artist)
+            q_title = quote_plus(title)
+            url = f"https://musicbrainz.org/ws/2/recording/?query=artist:{q_artist}%20AND%20recording:{q_title}&fmt=json&limit=1"
             data = fetch_url(url, timeout=10)
             if not data:
                 return None
@@ -358,7 +360,8 @@ class C3(BaseContextSignal):
     
     def _check_discogs_release(self, artist: str, title: str) -> int | None:
         try:
-            url = f"https://api.discogs.com/database/search?q={artist}%20{title}&type=release&per_page=1"
+            q = quote_plus(f"{artist} {title}")
+            url = f"https://api.discogs.com/database/search?q={q}&type=release&per_page=1"
             data = fetch_url(url, timeout=10)
             if not data:
                 return None
@@ -375,7 +378,8 @@ class C3(BaseContextSignal):
     
     def _check_beatport(self, artist: str, title: str) -> bool:
         try:
-            url = f"https://www.beatport.com/search?q={artist}%20{title}"
+            q = quote_plus(f"{artist} {title}")
+            url = f"https://www.beatport.com/search?q={q}"
             data = fetch_url(url, timeout=10)
             return data is not None and len(data) > 1000
         except (OSError, TimeoutError):
@@ -471,7 +475,34 @@ class C7(BaseContextSignal):
                 note="no artist identified", group=self.group,
             )
         try:
-            url = f"https://musicbrainz.org/ws/2/release-group?artist={quote_plus(artist)}&fmt=json&limit=100"
+            # Resolve artist ID first
+            q = quote_plus(artist)
+            url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{q}&fmt=json&limit=1"
+            data = fetch_url(url, timeout=10)
+            if not data:
+                return SignalResult(
+                    id=self.id, name=self.name, value=0.0, subscore=0.5,
+                    weight=self.weight, reliability=self.reliability, available=True,
+                    note="MusicBrainz artist lookup failed", group=self.group,
+                )
+            import json
+            resp = json.loads(data)
+            artists = resp.get("artists", [])
+            if not artists:
+                return SignalResult(
+                    id=self.id, name=self.name, value=0.0, subscore=0.5,
+                    weight=self.weight, reliability=self.reliability, available=True,
+                    note=f"artist '{artist}' not found on MusicBrainz", group=self.group,
+                )
+            artist_id = artists[0].get("id")
+            if not artist_id:
+                return SignalResult(
+                    id=self.id, name=self.name, value=0.0, subscore=0.5,
+                    weight=self.weight, reliability=self.reliability, available=True,
+                    note="MusicBrainz artist ID missing", group=self.group,
+                )
+            # Query release groups by artist ID
+            url = f"https://musicbrainz.org/ws/2/release-group?artist={artist_id}&fmt=json&limit=100"
             # Simplified placeholder: assume high frequency if > 50 releases
             # Real implementation would parse dates
             data = fetch_url(url, timeout=10)
@@ -500,6 +531,12 @@ class C7(BaseContextSignal):
                 note=note, group=self.group,
             )
         except (OSError, ValueError, TimeoutError):
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.5,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="release frequency check error", group=self.group,
+            )
+        except Exception:  # noqa: BLE001
             return SignalResult(
                 id=self.id, name=self.name, value=0.0, subscore=0.5,
                 weight=self.weight, reliability=self.reliability, available=True,
@@ -557,8 +594,8 @@ class C5(BaseContextSignal):
     """Community AI database lookup."""
     id = "C5"
     name = "community_ai_db"
-    weight = 4
-    reliability = 0.8
+    weight = 500
+    reliability = 0.98
 
     def __init__(self):
         self._db: CommunityDB | None = None
@@ -569,7 +606,7 @@ class C5(BaseContextSignal):
         return config.community_db.get("enabled", True)
     
     def compute(self, probe: FileProbe, config: Config) -> SignalResult:
-        artist, _ = _get_artist_title(probe)
+        artist, title = _get_artist_title(probe)
         if not artist:
             return SignalResult(
                 id=self.id, name=self.name, value=0.0, subscore=0.0,
@@ -599,6 +636,33 @@ class C5(BaseContextSignal):
         threshold = config.community_db.get("fuzzy_threshold", 0.9)
         
         match = lookup_artist(db, artist, aliases, fuzzy, threshold)
+        # Fallback: try title as artist candidate for filenames like "Artist - Title (feat. AI Artist)"
+        if match is None and title:
+            import re
+            candidates = []
+            # Try title directly
+            candidates.append(title)
+            # Extract text before '(' as possible artist
+            before_paren = re.split(r'\s*\(', title, maxsplit=1)[0].strip()
+            if before_paren and before_paren != title:
+                candidates.append(before_paren)
+            # Extract text in parentheses as possible artist
+            paren = re.search(r'\(([^)]+)\)', title)
+            if paren:
+                candidates.append(paren.group(1))
+            # Deduplicate
+            seen = set()
+            uniq = []
+            for c in candidates:
+                if c.lower() not in seen:
+                    seen.add(c.lower())
+                    uniq.append(c)
+            for cand in uniq:
+                m2 = lookup_artist(db, cand, [], fuzzy, threshold)
+                if m2:
+                    match = m2
+                    artist = cand
+                    break
         
         if match is None:
             return SignalResult(
@@ -609,6 +673,10 @@ class C5(BaseContextSignal):
         
         entry = match.entry
         subscore = confidence_to_subscore(entry.ai_confidence)
+        # Strongest indicator: force high subscore for any DB match
+        subscore = max(subscore, 0.95)
+        if entry.ai_confidence == "high":
+            subscore = 1.0
         
         fuzzy_note = " (fuzzy)" if match.fuzzy else ""
         
