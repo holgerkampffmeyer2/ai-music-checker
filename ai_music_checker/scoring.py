@@ -41,9 +41,9 @@ def group_score(results: list[SignalResult], group: str) -> tuple[float, float]:
 
 
 VERDICT_BANDS: list[tuple[float, str]] = [
-    (0.20, "UNAUFFÄLLIG"),
-    (0.40, "EHER MENSCHLICH"),
-    (0.60, "UNKLAR"),
+    (0.20, "UNOBTRUSIVE"),
+    (0.40, "LIKELY HUMAN"),
+    (0.60, "UNCLEAR"),
     (0.80, "LIKELY AI-ASSISTED"),
     (float("inf"), "VERY LIKELY AI"),
 ]

@@ -134,9 +134,18 @@ def parse_args() -> argparse.Namespace:
         help="Save DB suggestions to JSON file",
     )
     parser.add_argument(
-        "--llm",
+        "--llm-agent",
         action="store_true",
-        help="Enable optional LLM second-opinion judge",
+        help="Enable LLM second-opinion judge via agent",
+    )
+    parser.add_argument(
+        "--llm-backend",
+        choices=["openrouter", "ollama", "llm-agent"],
+        help="LLM backend to use",
+    )
+    parser.add_argument(
+        "--llm-model",
+        help="LLM model name",
     )
     return parser.parse_args()
 
@@ -214,7 +223,7 @@ def process_file(
     online: bool,
     heavy: bool = False,
     llm: bool = False,
-) -> tuple[FileProbe, list[Any], AggregateResult]:
+) -> tuple[FileProbe, list[Any], AggregateResult, dict[str, Any] | None]:
     """Process a single audio file.
     
     Args:
@@ -244,17 +253,25 @@ def process_file(
         enabled_groups.add("context")
     agg = aggregate(group_scores, config.weights, enabled_groups)
     
-    return probe, results, agg
+    llm_result = None
+    if llm:
+        try:
+            from ai_music_checker.llm_judge import judge
+            llm_result = judge(agg, results, probe, config)
+        except (RuntimeError, OSError):
+            llm_result = None
+    
+    return probe, results, agg, llm_result
 
 
-def _process_file_wrapper(args: tuple) -> tuple[Path, FileProbe, list[Any], AggregateResult, str | None]:
+def _process_file_wrapper(args: tuple) -> tuple[Path, FileProbe, list[Any], AggregateResult, dict[str, Any] | None, str | None]:
     """Wrapper for parallel processing."""
     filepath, config, online, heavy, llm = args
     try:
-        probe, results, agg = process_file(filepath, config, online, heavy, llm)
-        return (filepath, probe, results, agg, None)
+        probe, results, agg, llm_result = process_file(filepath, config, online, heavy, llm)
+        return (filepath, probe, results, agg, llm_result, None)
     except (OSError, ValueError, RuntimeError) as e:
-        return (filepath, None, None, None, str(e))
+        return (filepath, None, None, None, None, str(e))
 
 
 def main() -> int:
@@ -271,6 +288,12 @@ def main() -> int:
         cli_overrides = {}
         if args.online:
             cli_overrides["community_db.enabled"] = True
+        if args.llm_agent:
+            cli_overrides["llm_judge.backend"] = "llm-agent"
+        if args.llm_backend:
+            cli_overrides["llm_judge.backend"] = args.llm_backend
+        if args.llm_model:
+            cli_overrides["llm_judge.model"] = args.llm_model
         if args.config:
             cli_overrides["config_path"] = str(args.config)
         config = Config.load(cli_overrides=cli_overrides, config_path=args.config)
@@ -307,6 +330,12 @@ def main() -> int:
     cli_overrides = {}
     if args.online:
         cli_overrides["community_db.enabled"] = True
+    if args.llm_agent:
+        cli_overrides["llm_judge.backend"] = "llm-agent"
+    if args.llm_backend:
+        cli_overrides["llm_judge.backend"] = args.llm_backend
+    if args.llm_model:
+        cli_overrides["llm_judge.model"] = args.llm_model
     if args.config:
         cli_overrides["config_path"] = str(args.config)
     
@@ -318,7 +347,7 @@ def main() -> int:
     if len(audio_files) == 1:
         filepath = audio_files[0]
         try:
-            probe, results, agg = process_file(filepath, config, args.online, args.heavy, args.llm)
+            probe, results, agg, llm_result = process_file(filepath, config, args.online, args.heavy, args.llm_agent)
         except ProbeError as e:
             print(f"ERROR: {e}", file=sys.stderr)
             return 1
@@ -326,7 +355,7 @@ def main() -> int:
             print(f"ERROR processing {filepath}: {e}", file=sys.stderr)
             return 1
         
-        report_data = build(probe, results, agg)
+        report_data = build(probe, results, agg, llm_result)
         
         if args.json:
             json_output = to_json(report_data)
@@ -337,7 +366,7 @@ def main() -> int:
         elif args.brief:
             print(render_brief(agg, probe, use_color))
         else:
-            print(render_full(agg, results, probe, use_color))
+            print(render_full(agg, results, probe, use_color, llm_result=llm_result))
         
         return 0
     
@@ -350,17 +379,17 @@ def main() -> int:
         print(f"Processing {len(audio_files)} files in parallel (max {args.max_workers} workers)...")
         with ProcessPoolExecutor(max_workers=min(args.max_workers, len(audio_files))) as executor:
             futures = {
-                executor.submit(_process_file_wrapper, (fp, config, args.online, args.heavy, args.llm)): fp
+                executor.submit(_process_file_wrapper, (fp, config, args.online, args.heavy, args.llm_agent)): fp
                 for fp in audio_files
             }
             for future in as_completed(futures):
-                filepath, probe, results, agg, error = future.result()
+                filepath, probe, results, agg, llm_result, error = future.result()
                 if error:
                     print(f"ERROR {filepath.name}: {error}", file=sys.stderr)
                     error_count += 1
                     continue
                 
-                report_data = build(probe, results, agg)
+                report_data = build(probe, results, agg, llm_result)
                 
                 if args.json:
                     json_output = to_json(report_data)
@@ -373,7 +402,7 @@ def main() -> int:
                 elif args.brief:
                     print(render_brief(agg, probe, use_color))
                 else:
-                    print(render_full(agg, results, probe, use_color))
+                    print(render_full(agg, results, probe, use_color, llm_result=llm_result))
                 
                 success_count += 1
     else:
@@ -381,13 +410,13 @@ def main() -> int:
         print(f"Processing {len(audio_files)} files...")
         for filepath in audio_files:
             try:
-                probe, results, agg = process_file(filepath, config, args.online, args.heavy, args.llm)
+                probe, results, agg, llm_result = process_file(filepath, config, args.online, args.heavy, args.llm_agent)
             except (OSError, ValueError) as e:
                 print(f"ERROR {filepath.name}: {e}", file=sys.stderr)
                 error_count += 1
                 continue
             
-            report_data = build(probe, results, agg)
+            report_data = build(probe, results, agg, llm_result)
             
             if args.json:
                 json_output = to_json(report_data)
@@ -399,7 +428,7 @@ def main() -> int:
             elif args.brief:
                 print(render_brief(agg, probe, use_color))
             else:
-                print(render_full(agg, results, probe, use_color))
+                print(render_full(agg, results, probe, use_color, llm_result=llm_result))
             
             success_count += 1
     

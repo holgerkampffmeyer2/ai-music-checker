@@ -32,11 +32,11 @@ def _colorize(text: str, color: str, use_color: bool) -> str:
 
 
 def _verdict_color(verdict: str, use_color: bool) -> str:
-    if verdict == "UNAUFFÄLLIG":
+    if verdict == "UNOBTRUSIVE":
         return _colorize(verdict, Colors.GREEN, use_color)
-    elif verdict == "EHER MENSCHLICH":
+    elif verdict == "LIKELY HUMAN":
         return _colorize(verdict, Colors.CYAN, use_color)
-    elif verdict == "UNKLAR":
+    elif verdict == "UNCLEAR":
         return _colorize(verdict, Colors.YELLOW, use_color)
     elif verdict == "LIKELY AI-ASSISTED":
         return _colorize(verdict, Colors.MAGENTA, use_color)
@@ -119,6 +119,7 @@ def render_full(
     probe: Any,
     use_color: bool = True,
     top_n: int = 3,
+    llm_result: dict[str, Any] | None = None,
 ) -> str:
     """Render full-mode output with gauge, groups, and top indicators."""
     lines = []
@@ -169,6 +170,16 @@ def render_full(
     # Consistency / Coverage
     lines.append(_colorize("│", Colors.GRAY, use_color))
     lines.append(_colorize(f"│ Consistency: {agg.consistency*100:.0f}%  Coverage: {agg.coverage*100:.0f}%", Colors.GRAY, use_color))
+    if llm_result:
+        lines.append(_colorize("│", Colors.GRAY, use_color))
+        lines.append(_colorize("│ LLM Judge:", Colors.BOLD, use_color))
+        prob = llm_result.get("probability", "?")
+        conf = llm_result.get("confidence", "?")
+        reason = llm_result.get("reasoning", "")
+        lines.append(_colorize(f"│  Probability: {prob}  Confidence: {conf}", Colors.CYAN, use_color))
+        if reason:
+            short = reason[:120] + "…" if len(reason) > 120 else reason
+            lines.append(_colorize(f"│  Reasoning: {short}", Colors.GRAY, use_color))
     lines.append(_colorize("╰" + "─" * 60, Colors.GRAY, use_color))
     
     return "\n".join(lines)

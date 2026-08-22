@@ -131,7 +131,7 @@ class TestDBSuggester:
         
         # Should return None (below threshold)
         suggestion = suggest_from_signals(
-            probe, results, ai_probability=0.3, verdict="UNAUFFÄLLIG",
+            probe, results, ai_probability=0.3, verdict="UNOBTRUSIVE",
             min_confidence=0.6
         )
         

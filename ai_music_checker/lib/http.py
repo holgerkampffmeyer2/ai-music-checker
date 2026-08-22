@@ -27,21 +27,36 @@ def load_env() -> None:
                     os.environ.setdefault(key.strip(), val.strip())
 
 
-def fetch_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> str | None:
+def fetch_url(url: str, timeout: int = DEFAULT_TIMEOUT, retries: int = 2) -> str | None:
     """Fetch URL with retries and error handling."""
     load_env()
     req = Request(url, headers={"User-Agent": USER_AGENT})
-    try:
-        with urlopen(req, timeout=timeout) as resp:
-            return resp.read().decode("utf-8", errors="replace")
-    except HTTPError as e:
-        if e.code == 304:
-            return None  # Not modified
-        raise NetworkError(f"HTTP {e.code}: {e.reason}")
-    except URLError as e:
-        raise NetworkError(f"URL error: {e.reason}")
-    except TimeoutError:
-        raise NetworkError("Request timeout")
+    last_exc = None
+    for attempt in range(retries + 1):
+        try:
+            with urlopen(req, timeout=timeout) as resp:
+                return resp.read().decode("utf-8", errors="replace")
+        except HTTPError as e:
+            if e.code == 304:
+                return None
+            if (500 <= e.code < 600 or e.code == 429) and attempt < retries:
+                time.sleep(1 * (2 ** attempt))
+                last_exc = NetworkError(f"HTTP {e.code}: {e.reason} (retry {attempt+1})")
+                continue
+            raise NetworkError(f"HTTP {e.code}: {e.reason}")
+        except URLError as e:
+            last_exc = NetworkError(f"URL error: {e.reason}")
+            if attempt < retries:
+                time.sleep(1 * (2 ** attempt))
+                continue
+            raise last_exc
+        except TimeoutError:
+            last_exc = NetworkError("Request timeout")
+            if attempt < retries:
+                time.sleep(1 * (2 ** attempt))
+                continue
+            raise last_exc
+    raise last_exc
 
 
 def retry(func, attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):

@@ -1,7 +1,7 @@
 """Integration tests using Suno dataset."""
 import pytest
 from pathlib import Path
-from tests.testdata_helpers import list_suno_samples
+from testdata_helpers import list_suno_samples
 
 pytestmark = pytest.mark.skipif(
     not list_suno_samples(),

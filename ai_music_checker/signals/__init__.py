@@ -51,9 +51,34 @@ def run_all_signals(
 ) -> list[SignalResult]:
     """Run all registry signals where available(config), preserving order."""
     results: list[SignalResult] = []
+    # Determine if artist is in community DB to skip online context signals
+    skip_online = False
+    try:
+        tags = probe.tags or {}
+        artist = tags.get("artist") or tags.get("album_artist")
+        community_db = getattr(config, "community_db", None)
+        if artist and community_db and community_db.get("enabled", True):
+            from ai_music_checker.community_db import load_or_fetch, lookup_artist
+            db = load_or_fetch(community_db)
+            if db and db.entries:
+                aliases = [v for k, v in tags.items() if k in ("artist","album_artist","performer") and v != artist]
+                fuzzy = community_db.get("fuzzy_enabled", False)
+                threshold = community_db.get("fuzzy_threshold", 0.9)
+                match = lookup_artist(db, artist, aliases, fuzzy, threshold)
+                if match:
+                    skip_online = True
+    except Exception:  # noqa: BLE001
+        skip_online = False
+
     for signal in registry if registry is not None else SIGNAL_REGISTRY:
         if not signal.available(config):
             continue
+        # Skip online context signals if artist found in community DB
+        if skip_online:
+            group = getattr(signal, "group", "")
+            sid = getattr(signal, "id", "")
+            if group == "context" and sid != "C5":
+                continue
         results.append(signal.compute(probe, config))
     return results
 

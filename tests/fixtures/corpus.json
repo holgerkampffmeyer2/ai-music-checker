@@ -3,9 +3,9 @@
     "version": "1.0.0",
     "description": "Calibration corpus for AI music detection. Human and AI tracks with expected verdicts.",
     "verdict_bands": {
-      "UNAUFFAELLIG": "Score 0.00-0.20: Track appears definitively human-produced.",
-      "EHER MENSCHLICH": "Score 0.21-0.40: Track is likely human but has minor anomalies.",
-      "UNKLAR": "Score 0.41-0.60: Cannot reliably determine origin.",
+      "UNOBTRUSIVE": "Score 0.00-0.20: Track appears definitively human-produced.",
+      "LIKELY HUMAN": "Score 0.21-0.40: Track is likely human but has minor anomalies.",
+      "UNCLEAR": "Score 0.41-0.60: Cannot reliably determine origin.",
       "LIKELY AI-ASSISTED": "Score 0.61-0.80: Strong indicators of AI involvement.",
       "VERY LIKELY AI": "Score 0.81-1.00: Almost certainly AI-generated."
     },
@@ -20,7 +20,7 @@
       "label": "human",
       "source": "Beatport",
       "notes": "Classic 2000 French house production. Heavily processed vocals with intentional rhythmic gating, sidechain compression, and layered disco samples. Production choices reflect deliberate artistic intent with human timing variations throughout.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "deadmau5 - Strobe.mp3",
@@ -29,7 +29,7 @@
       "label": "human",
       "source": "Beatport",
       "notes": "10-minute progressive house arrangement with complex evolving structure, multiple breakdowns, and organic filter sweeps. Arrangement choices show human musical decision-making with non-repeating structural development.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Aphex Twin - Windowlicker.mp3",
@@ -38,7 +38,7 @@
       "label": "human",
       "source": "SoundCloud",
       "notes": "IDM track with extreme dynamic range, natural tempo drift, and complex polyrhythmic programming. Contains deliberate imperfections and analog warmth characteristic of hardware-based production.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Boards of Canada - Dayvan Cowboy.mp3",
@@ -47,7 +47,7 @@
       "label": "human",
       "source": "SoundCloud",
       "notes": "Organic textures with tape saturation, subtle pitch warble, and layered field recordings. Production exhibits natural warmth and analog character that AI models struggle to replicate authentically.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Jon Hopkins - Open Eye Signal.mp3",
@@ -56,7 +56,7 @@
       "label": "human",
       "source": "Beatport",
       "notes": "Dense, detailed techno production with intricate percussive layers, analog synth processing, and organic reverb tails. Complex signal chain processing shows human sound design expertise.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Caribou - Cant Do Without You.mp3",
@@ -65,7 +65,7 @@
       "label": "human",
       "source": "SoundCloud",
       "notes": "Vocal-driven electronic track with natural vocal processing, organic filtering, and human timing. Vocal performance contains natural breath and emotional dynamics absent from AI vocals.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Four Tet - Parallel Jalebi.mp3",
@@ -74,7 +74,7 @@
       "label": "human",
       "source": "SoundCloud",
       "notes": "Organic-electronic hybrid with field recordings, hand percussion, and non-standard time signatures. Experimental arrangement reflects human creative choices rather than pattern generation.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Burial - Archangel.mp3",
@@ -83,7 +83,7 @@
       "label": "human",
       "source": "SoundCloud",
       "notes": "Dubstep/garage hybrid with vinyl crackle, fragmented vocal samples, and irregular rhythmic patterns. Lo-fi production aesthetic with deliberate noise artifacts and humanized swing.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Nicolas Jaar - Space Is Only Noise.mp3",
@@ -92,7 +92,7 @@
       "label": "human",
       "source": "Beatport",
       "notes": "Experimental ambient composition with extensive use of silence, irregular structures, and live instrument recordings. Unconventional arrangement demonstrates human artistic decision-making.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Apparat - Song of Los.mp3",
@@ -101,7 +101,7 @@
       "label": "human",
       "source": "SoundCloud",
       "notes": "Organic-electronic fusion with live instrument integration, complex dynamic arrangements, and natural reverb spaces. Production exhibits human attention to emotional arc and pacing.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Moderat - Bad Kingdom.mp3",
@@ -110,7 +110,7 @@
       "label": "human",
       "source": "Beatport",
       "notes": "Collaborative electronic track with layered production, vocal processing, and complex arrangement transitions. Three producers contributing distinct creative voices creates non-repeating structural complexity.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "Jon Hopkins - Emerald Rush.mp3",
@@ -119,7 +119,7 @@
       "label": "human",
       "source": "Beatport",
       "notes": "Extended progressive arrangement with evolving textures, dynamic builds, and organic synthesis. Production demonstrates human understanding of tension and release across long timeframes.",
-      "expected_verdict": "UNAUFFAELLIG"
+      "expected_verdict": "UNOBTRUSIVE"
     },
     {
       "filename": "CLMX - Freedom.mp3",
