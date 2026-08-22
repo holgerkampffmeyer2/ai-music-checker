@@ -82,7 +82,7 @@ ai-music-checker track.mp3 --no-color
 | `--json <path>` | JSON output (file path or `-` for stdout) |
 | `--online` | Enable context group (MusicBrainz, Discogs, Community DB) |
 | `--heavy` | Enable heavy signals (FFT, phase, transients) |
-| `--llm` | Enable optional LLM second-opinion judge |
+| `--llm-agent` | Enable LLM second-opinion via agent skill |
 | `--no-color` | Disable ANSI color |
 | `--config <path>` | Custom config.json |
 | `--max-workers <n>` | Parallel workers (default 5) |
@@ -171,6 +171,7 @@ Config file: `config.json` in project root.
 - Activate venv before running: `source .venv/bin/activate`
 - Run `ruff check` before committing
 - MP3 files in root are test data — do not delete
+- Community AI Artists DB is source of truth in separate repo `/mnt/c/work/ai-artists-db/known_ai_artists.json`. Future DB entries must be added there, not in `ai_music_checker/data/known_ai_artists.json`. Local bundled copy is deprecated and will be removed.
 
 ## Build & Release
 
