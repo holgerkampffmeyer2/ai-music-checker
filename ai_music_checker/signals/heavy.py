@@ -351,6 +351,76 @@ class T10(BaseSignal):
         )
 
 
+class T13(BaseSignal):
+    """High frequency resampling detection — abrupt cutoff."""
+    id = "T13"
+    name = "hf_resampling"
+    weight = 5
+    reliability = 0.4
+
+    def available(self, config: Any) -> bool:
+        return True
+
+    def compute(self, probe: FileProbe, config: Config) -> SignalResult:
+        sr = probe.sample_rate or 44100
+        if sr < 22050:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.0,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="sample rate too low for HF analysis", group=self.group,
+            )
+        # Energy in 16-20kHz vs 10-16kHz
+        cmd_low = (
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
+            f"-af highpass=f=10000,lowpass=f=16000,volumedetect -f null -"
+        )
+        cmd_high = (
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
+            f"-af highpass=f=16000,lowpass=f=20000,volumedetect -f null -"
+        )
+        ok_l, _o, e_l = run_cmd(cmd_low, timeout=120)
+        ok_h, _o, e_h = run_cmd(cmd_high, timeout=120)
+        if not ok_l or not ok_h:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.0,
+                weight=self.weight, reliability=self.reliability, available=False,
+                note="HF resampling analysis failed", group=self.group,
+            )
+        import re
+        def parse_mean(err):
+            m = re.search(r"mean_volume:\s*(-?\d+\.?\d*)", err)
+            if m:
+                try:
+                    return float(m.group(1))
+                except ValueError:
+                    return None
+            return None
+        vol_low = parse_mean(e_l)
+        vol_high = parse_mean(e_h)
+        if vol_low is None or vol_high is None:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.0,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="could not parse HF volumes", group=self.group,
+            )
+        ratio = vol_high - vol_low
+        # Strong drop indicates resampling cutoff
+        if ratio < -30:
+            subscore = 0.8
+            note = f"abrupt HF cutoff {ratio:.1f} dB"
+        elif ratio < -20:
+            subscore = 0.4
+            note = f"HF rolloff {ratio:.1f} dB"
+        else:
+            subscore = 0.0
+            note = f"HF normal {ratio:.1f} dB"
+        return SignalResult(
+            id=self.id, name=self.name, value=ratio, subscore=subscore,
+            weight=self.weight, reliability=self.reliability, available=True,
+            note=note, group=self.group,
+        )
+
+
 class T12(BaseSignal):
     """Stem separation consistency — cross-stem spectral overlap."""
     id = "T12"
@@ -396,4 +466,4 @@ class T12(BaseSignal):
         )
 
 
-HEAVY_SIGNALS = [T8(), T9(), T10(), T11(), T12()]
+HEAVY_SIGNALS = [T8(), T9(), T10(), T11(), T12(), T13()]
