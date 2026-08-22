@@ -19,14 +19,14 @@
 
 ## 3. Technical Signals T1–T7 (M2)
 
-- [ ] 3.1 Implement `T1_hf_energy`: highpass @16k/19k + volumedetect + spectral mirror check
-- [ ] 3.2 Implement `T2_dynamics`: loudnorm JSON (I, LRA, TP) + astats crest factor
-- [ ] 3.3 Implement `T3_stereo`: side-channel energy distribution analysis
-- [ ] 3.4 Implement `T4_noise_seams`: silencedetect + autocorrelation for loop seams (start with ffmpeg silencedetect)
-- [ ] 3.5 Implement `T5_encoder_chain`: encoder/comment tags, LAME Info header parsing
-- [ ] 3.6 Implement `T6_sr_artifacts`: spectral imaging detection above cutoff
-- [ ] 3.7 Implement `T7_bpm_sanity`: BPM estimation vs genre plausibility
-- [ ] 3.8 Write unit tests for each T-signal using synthetic audio fixtures
+- [x] 3.1 Implement `T1_hf_energy`: highpass @16k/19k + volumedetect + spectral mirror check
+- [x] 3.2 Implement `T2_dynamics`: loudnorm JSON (I, LRA, TP) + astats crest factor
+- [x] 3.3 Implement `T3_stereo`: side-channel energy distribution analysis
+- [x] 3.4 Implement `T4_noise_seams`: silencedetect + autocorrelation for loop seams (start with ffmpeg silencedetect)
+- [x] 3.5 Implement `T5_encoder_chain`: encoder/comment tags, LAME Info header parsing
+- [x] 3.6 Implement `T6_sr_artifacts`: spectral imaging detection above cutoff
+- [x] 3.7 Implement `T7_bpm_sanity`: BPM estimation vs genre plausibility
+- [x] 3.8 Write unit tests for each T-signal using synthetic audio fixtures
 
 ## 4. Metadata Signals M1–M4 (M3)
 
