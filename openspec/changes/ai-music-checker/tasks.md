@@ -45,8 +45,8 @@
 
 ## 6. Report & JSON Output (M1–M3)
 
-- [ ] 6.1 Define output dataclasses: `FileInfo`, `Provenance`, `SignalResult`, `GroupResult`, `Result`, `AnalysisJSON`
-- [ ] 6.2 Implement `report.build()` → dict → JSON with schema_version 1.0
+- [x] 6.1 Define output dataclasses: `FileInfo`, `Provenance`, `SignalResult`, `GroupResult`, `Result`, `AnalysisJSON` (als dicts in report.py umgesetzt)
+- [x] 6.2 Implement `report.build()` → dict → JSON with schema_version 1.0
 - [ ] 6.3 Validate JSON schema against test golden file
 - [ ] 6.4 Test: `--json out.json` produces valid schema v1.0 output
 
