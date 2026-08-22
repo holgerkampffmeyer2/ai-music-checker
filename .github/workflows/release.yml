@@ -19,6 +19,9 @@ jobs:
       - name: Install dependencies
         run: pip install pytest ruff
 
+      - name: Install package
+        run: pip install -e .
+
       - name: Lint
         run: ruff check ai_music_checker/
 
