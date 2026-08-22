@@ -455,11 +455,57 @@ class C4(BaseContextSignal):
             return None
 
 
+class C6(BaseContextSignal):
+    """MusicBrainz artist verification — checks for established release history."""
+    id = "C6"
+    name = "musicbrainz_verification"
+    weight = 5
+    reliability = 0.7
+
+    def compute(self, probe: FileProbe, config: Config) -> SignalResult:
+        artist, _ = _get_artist_title(probe)
+        if not artist:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.5,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="no artist identified", group=self.group,
+            )
+        try:
+            url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{quote_plus(artist)}&fmt=json&limit=1"
+            data = fetch_url(url, timeout=10)
+            if not data:
+                return SignalResult(
+                    id=self.id, name=self.name, value=0.0, subscore=0.7,
+                    weight=self.weight, reliability=self.reliability, available=True,
+                    note="MusicBrainz lookup failed", group=self.group,
+                )
+            resp = json.loads(data)
+            artists = resp.get("artists", [])
+            if not artists:
+                return SignalResult(
+                    id=self.id, name=self.name, value=0.0, subscore=0.9,
+                    weight=self.weight, reliability=self.reliability, available=True,
+                    note=f"artist '{artist}' not found on MusicBrainz", group=self.group,
+                )
+            # Simple heuristic: existence = human-like
+            return SignalResult(
+                id=self.id, name=self.name, value=1.0, subscore=0.0,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note=f"artist '{artist}' found on MusicBrainz", group=self.group,
+            )
+        except (OSError, ValueError, TimeoutError):
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.5,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="MusicBrainz verification error", group=self.group,
+            )
+
+
 class C5(BaseContextSignal):
-    """Community DB lookup — known AI artists database."""
+    """Community AI database lookup."""
     id = "C5"
-    name = "community_db"
-    weight = 9
+    name = "community_ai_db"
+    weight = 4
     reliability = 0.8
 
     def __init__(self):
@@ -534,4 +580,4 @@ class C5(BaseContextSignal):
         )
 
 
-CONTEXT_SIGNALS = [C1(), C2(), C3(), C4(), C5()]
+CONTEXT_SIGNALS = [C1(), C2(), C3(), C4(), C5(), C6()]
