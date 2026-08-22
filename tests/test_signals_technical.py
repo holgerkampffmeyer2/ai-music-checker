@@ -221,7 +221,7 @@ class TestT3StereoAnomalies:
         with patch("ai_music_checker.signals.technical.run_cmd") as mc:
             mc.side_effect = [(True, VOLUMEDETECT_STEREO, ""),
                              (True, VOLUMEDETECT_SIDE_MEDIUM, "")]
-            res = t.T3().compute(probe, config)
+            t.T3().compute(probe, config)
         # rel -24 ≤ -25? -24 > -25 → 0.0. Wait: -38 - (-14) = -24 → not ≤ -25. Test expects 0.5.
         # Let me adjust: rel -28 (side -42).
         # My test is wrong; fix: use side -42 → -28 rel.

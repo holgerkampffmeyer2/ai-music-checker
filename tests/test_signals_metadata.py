@@ -6,7 +6,7 @@ Weights/reliabilities per PLAN.md §4:
 - M1 watermark_scan    w=12 r=0.9  (direct generator-pattern hit)
 - M2 identifier_gaps   w=7  r=0.5  (ISRC/catalog/UPC presence)
 - M3 cover_provenance  w=5  r=0.6  (generator string in artwork EXIF)
-- M4 naming_heuristics w=6  r=0.4  (multiple heuristic hits)
+- M4 naming_heuristics w=4  r=0.4  (multiple heuristic hits, reduced from 6)
 """
 
 import sys
@@ -45,7 +45,7 @@ class TestSignalContract:
         ("M1", "watermark_scan", 12, 0.9),
         ("M2", "identifier_gaps", 7, 0.5),
         ("M3", "cover_provenance", 5, 0.6),
-        ("M4", "naming_heuristics", 6, 0.4),
+        ("M4", "naming_heuristics", 4, 0.4),
     ])
     def test_class_attributes(self, cls_id, name, weight, reliability):
         import ai_music_checker.signals.metadata as m

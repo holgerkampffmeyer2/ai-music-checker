@@ -158,3 +158,59 @@ def update_evidence_in_entry(entry: dict[str, Any],
     updated_entry["verified"] = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
     
     return updated_entry
+
+def update_database_evidence(
+    db: dict[str, Any],
+    results: dict[str, list[EvidenceStatus]],
+    retention_days: int = 30,
+) -> dict[str, Any]:
+    """Update database with evidence check results and remove expired broken evidence.
+    
+    Args:
+        db: Database dict with entries
+        results: Evidence check results from check_database_evidence
+        retention_days: Days to keep broken evidence before removal (default: 30)
+    
+    Returns:
+        Updated database dict
+    """
+    from datetime import timedelta
+    
+    updated_db = db.copy()
+    updated_entries = []
+    
+    today = datetime.now(tz=timezone.utc)
+    cutoff_date = (today - timedelta(days=retention_days)).strftime("%Y-%m-%d")
+    
+    for entry in updated_db.get("entries", []):
+        entry_id = entry.get("id", "unknown")
+        
+        if entry_id in results:
+            # Update evidence with new statuses
+            updated_entry = update_evidence_in_entry(entry, results[entry_id])
+            
+            # Filter out broken evidence older than retention period
+            if retention_days > 0:
+                evidence = updated_entry.get("evidence", [])
+                filtered_evidence = []
+                
+                for ev in evidence:
+                    status = ev.get("status", "valid")
+                    last_checked = ev.get("last_checked", "")
+                    
+                    # Keep if not broken, or if broken but within retention period
+                    if status != "broken" or (last_checked and last_checked >= cutoff_date):
+                        filtered_evidence.append(ev)
+                    else:
+                        print(f"  Removing broken evidence from {entry_id}: {ev.get('url', 'unknown')}")
+                
+                updated_entry["evidence"] = filtered_evidence
+            
+            updated_entries.append(updated_entry)
+        else:
+            updated_entries.append(entry)
+    
+    updated_db["entries"] = updated_entries
+    updated_db["updated"] = today.strftime("%Y-%m-%d")
+    
+    return updated_db

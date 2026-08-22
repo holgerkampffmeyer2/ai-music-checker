@@ -18,7 +18,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 
-
 DEFAULTS_SNAPSHOT = {
     "weights": {"technical": 40, "metadata": 25, "context": 35},
     "request_timeout_s": 10,

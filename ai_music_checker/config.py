@@ -37,6 +37,10 @@ DEFAULTS: dict[str, Any] = {
         "ttl_hours": 24,
         "fuzzy_enabled": False,
         "fuzzy_threshold": 0.9,
+        "evidence": {
+            "check": False,
+            "retention_days": 30,
+        },
     },
     "llm_judge": {
         "enabled": False,
@@ -47,10 +51,6 @@ DEFAULTS: dict[str, Any] = {
         "temperature": 0.1,
         "max_tokens": 1500,
         "prompt_template": "builtin_v1",
-    },
-    "evidence": {
-        "check_urls": False,
-        "timeout_s": 10,
     },
     "db_suggest": {
         "enabled": False,
@@ -95,7 +95,6 @@ class Config:
     retry_attempts: int = DEFAULTS["retry_attempts"]
     community_db: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["community_db"]))
     llm_judge: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["llm_judge"]))
-    evidence: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["evidence"]))
     db_suggest: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["db_suggest"]))
 
     @classmethod

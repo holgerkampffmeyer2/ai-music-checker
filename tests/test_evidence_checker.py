@@ -1,8 +1,9 @@
 """Tests for evidence checker and DB suggester."""
 import json
-import pytest
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 
 class TestEvidenceChecker:
@@ -80,7 +81,7 @@ class TestEvidenceChecker:
             assert results["test-1"][1].status == "broken"
 
     def test_generate_evidence_report(self):
-        from ai_music_checker.evidence_checker import generate_evidence_report, EvidenceStatus
+        from ai_music_checker.evidence_checker import EvidenceStatus, generate_evidence_report
         
         results = {
             "test-artist": [
@@ -171,7 +172,7 @@ class TestDBSuggester:
         assert len(suggestion.evidence) > 0
 
     def test_suggest_from_batch_filters_low_count(self):
-        from ai_music_checker.db_suggester import suggest_from_batch, DBSuggestion
+        from ai_music_checker.db_suggester import DBSuggestion, suggest_from_batch
         
         suggestions = [
             DBSuggestion(id="artist-a", name="Artist A", reason="test", indicators=["T1"]),
@@ -186,7 +187,7 @@ class TestDBSuggester:
         assert filtered[0].id == "artist-a"
 
     def test_suggestions_to_json(self):
-        from ai_music_checker.db_suggester import suggestions_to_json, DBSuggestion
+        from ai_music_checker.db_suggester import DBSuggestion, suggestions_to_json
         
         suggestions = [
             DBSuggestion(

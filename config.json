@@ -15,18 +15,40 @@
     },
     "M1": {
       "patterns": [
-        "suno", "udio", "stable audio", "riffusion", "musicgen",
-        "aiva", "soundraw", "boomy", "ecrett", "mubert", "loudly"
+        "suno",
+        "udio",
+        "stable audio",
+        "riffusion",
+        "musicgen",
+        "aiva",
+        "soundraw",
+        "boomy",
+        "ecrett",
+        "mubert",
+        "loudly"
       ],
-      "whitelist": ["promo-cloud", "konkah engine"]
+      "whitelist": [
+        "promo-cloud",
+        "konkah engine"
+      ]
     },
     "M4": {
       "acronym_artist_max_len": 5,
-      "suffixes": ["xtd", "extended", "remix", "vocal", "instrumental", "radio edit"]
+      "suffixes": [
+        "xtd",
+        "extended",
+        "remix",
+        "vocal",
+        "instrumental",
+        "radio edit"
+      ]
     }
   },
-  "metadata_sources": ["musicbrainz", "discogs", "soundcloud"],
-  "soundcloud_client_id_env": "SOUNDCLOUD_CLIENT_ID",
+  "metadata_sources": [
+    "musicbrainz",
+    "discogs",
+    "soundcloud"
+  ],
   "request_timeout_s": 10,
   "retry_attempts": 3,
   "community_db": {
@@ -34,7 +56,11 @@
     "url": "https://raw.githubusercontent.com/holgerkampffmeyer2/ai-artists-db/main/known_ai_artists.json",
     "ttl_hours": 24,
     "fuzzy_enabled": false,
-    "fuzzy_threshold": 0.9
+    "fuzzy_threshold": 0.9,
+    "evidence": {
+      "check": false,
+      "retention_days": 30
+    }
   },
   "llm_judge": {
     "enabled": false,
@@ -45,5 +71,9 @@
     "temperature": 0.1,
     "max_tokens": 1500,
     "prompt_template": "builtin_v1"
+  },
+  "db_suggest": {
+    "enabled": false,
+    "min_ai_probability": 0.6
   }
 }

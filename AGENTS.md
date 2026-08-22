@@ -87,6 +87,7 @@ ai-music-checker track.mp3 --no-color
 | `--max-workers <n>` | Parallel workers (default 5) |
 | `--recursive` | Recursive directory scan |
 | `--check-evidence` | Check evidence URLs in community DB and report status |
+| `--apply` | Apply changes (remove broken evidence after retention period) |
 | `--suggest-db` | Suggest new community DB entries based on analysis |
 | `--min-ai-probability` | Minimum AI probability to suggest DB entry (default: 0.6) |
 | `--save-suggestions <path>` | Save DB suggestions to JSON file |

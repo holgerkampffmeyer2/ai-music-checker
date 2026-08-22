@@ -162,6 +162,9 @@ ai-music-checker track.mp3 --no-color
 # Check evidence URLs in community database
 ai-music-checker --check-evidence
 
+# Check and apply changes (remove broken evidence after retention period)
+ai-music-checker --check-evidence --apply
+
 # Suggest new DB entries from analyzed files
 ai-music-checker *.mp3 --suggest-db --min-ai-probability 0.7
 

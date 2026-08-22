@@ -69,7 +69,7 @@ class TestGroupScore:
             make_result("T1", 0.9, available=True),
             make_result("C5", 1.0, available=False),
         ]
-        score, coverage = group_score(results, "context")
+        _score, coverage = group_score(results, "context")
         assert coverage < 1.0
 
     def test_empty_group_returns_zeros(self):

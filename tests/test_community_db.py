@@ -12,12 +12,9 @@ Tests cover:
 """
 
 import json
-import tempfile
-import os
 import sys
 from pathlib import Path
-from unittest.mock import patch, MagicMock, mock_open
-from datetime import datetime, timedelta
+from unittest.mock import patch
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "ai_music_checker"))
@@ -243,12 +240,12 @@ class TestRemoteFetch:
         with patch("ai_music_checker.community_db.fetch_url") as mock_fetch:
             # First call returns data
             mock_fetch.return_value = sample_db_json
-            db1 = fetch_remote("https://example.com/db.json", cache_path=cache_file)
+            fetch_remote("https://example.com/db.json", cache_path=cache_file)
             # Second call simulates 304
             mock_fetch.return_value = None  # 304
             mock_fetch.side_effect = [None, sample_db_json]  # Actually need better mock
             # Simplified: just verify cache is used when fetch returns None
-            pass  # Detailed implementation test later
+            # Detailed implementation test later
 
     def test_fetch_remote_timeout_falls_back_to_cache(self, sample_db_json):
         from ai_music_checker.community_db import fetch_remote

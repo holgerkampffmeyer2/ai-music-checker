@@ -113,6 +113,11 @@ def parse_args() -> argparse.Namespace:
         help="Check evidence URLs in community DB and report status",
     )
     parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Apply changes (remove broken evidence after retention period)",
+    )
+    parser.add_argument(
         "--suggest-db",
         action="store_true",
         help="Suggest new community DB entries based on analysis",
@@ -403,7 +408,11 @@ if __name__ == "__main__":
 def _handle_check_evidence(args: argparse.Namespace) -> int:
     """Handle --check-evidence flag."""
     from ai_music_checker.community_db import load_or_fetch
-    from ai_music_checker.evidence_checker import check_database_evidence, generate_evidence_report
+    from ai_music_checker.evidence_checker import (
+        check_database_evidence,
+        generate_evidence_report,
+        update_database_evidence,
+    )
     
     # Load config
     cli_overrides = {}
@@ -445,6 +454,19 @@ def _handle_check_evidence(args: argparse.Namespace) -> int:
     # Generate report
     report = generate_evidence_report(results)
     print(report)
+    
+    # Apply changes if requested
+    if args.apply:
+        retention_days = config.community_db.get("evidence", {}).get("retention_days", 30)
+        updated_db = update_database_evidence(db_dict, results, retention_days)
+        
+        # Save to cache
+        from ai_music_checker.community_db import get_db_cache_path
+        cache_path = get_db_cache_path()
+        import json
+        cache_path.write_text(json.dumps(updated_db, indent=2), encoding="utf-8")
+        print(f"\nApplied changes to {cache_path}")
+        print(f"Removed evidence older than {retention_days} days with status 'broken'")
     
     return 0
 
