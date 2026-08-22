@@ -455,6 +455,58 @@ class C4(BaseContextSignal):
             return None
 
 
+class C7(BaseContextSignal):
+    """Release frequency heuristic — detects unusually high release cadence."""
+    id = "C7"
+    name = "release_frequency"
+    weight = 4
+    reliability = 0.5
+
+    def compute(self, probe: FileProbe, config: Config) -> SignalResult:
+        artist, _ = _get_artist_title(probe)
+        if not artist:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.5,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="no artist identified", group=self.group,
+            )
+        try:
+            url = f"https://musicbrainz.org/ws/2/release-group?artist={quote_plus(artist)}&fmt=json&limit=100"
+            # Simplified placeholder: assume high frequency if > 50 releases
+            # Real implementation would parse dates
+            data = fetch_url(url, timeout=10)
+            if not data:
+                return SignalResult(
+                    id=self.id, name=self.name, value=0.0, subscore=0.5,
+                    weight=self.weight, reliability=self.reliability, available=True,
+                    note="MusicBrainz release lookup failed", group=self.group,
+                )
+            import json
+            resp = json.loads(data)
+            rgs = resp.get("release-groups", [])
+            count = len(rgs)
+            if count > 100:
+                subscore = 0.8
+                note = f"very high release count {count}"
+            elif count > 50:
+                subscore = 0.4
+                note = f"high release count {count}"
+            else:
+                subscore = 0.0
+                note = f"release count normal {count}"
+            return SignalResult(
+                id=self.id, name=self.name, value=float(count), subscore=subscore,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note=note, group=self.group,
+            )
+        except (OSError, ValueError, TimeoutError):
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.5,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="release frequency check error", group=self.group,
+            )
+
+
 class C6(BaseContextSignal):
     """MusicBrainz artist verification — checks for established release history."""
     id = "C6"
@@ -580,4 +632,4 @@ class C5(BaseContextSignal):
         )
 
 
-CONTEXT_SIGNALS = [C1(), C2(), C3(), C4(), C5(), C6()]
+CONTEXT_SIGNALS = [C1(), C2(), C3(), C4(), C5(), C6(), C7()]

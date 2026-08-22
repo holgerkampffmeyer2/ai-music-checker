@@ -221,4 +221,35 @@ class M4(BaseSignal):
         )
 
 
-METADATA_SIGNALS = [M1(), M2(), M3(), M4()]
+class M5(BaseSignal):
+    """Metadata encoder validation — check encoder tag for generative patterns."""
+    id = "M5"
+    name = "encoder_validation"
+    weight = 6
+    reliability = 0.6
+
+    def compute(self, probe: FileProbe, config: Config) -> SignalResult:
+        tags = probe.tags or {}
+        encoder = str(tags.get("encoder", "")).lower()
+        if not encoder:
+            return SignalResult(
+                id=self.id, name=self.name, value=0.0, subscore=0.5,
+                weight=self.weight, reliability=self.reliability, available=True,
+                note="no encoder tag present", group=self.group,
+            )
+        patterns = ["suno", "udio", "stable audio", "stableaudio", "demucs", "spleeter", "ffmpeg n-?"]
+        hits = [p for p in patterns if p in encoder]
+        if hits:
+            subscore = 0.8
+            note = f"encoder tag contains generative pattern: {', '.join(hits)}"
+        else:
+            subscore = 0.0
+            note = f"encoder tag normal: {encoder[:80]}"
+        return SignalResult(
+            id=self.id, name=self.name, value=float(len(hits)), subscore=subscore,
+            weight=self.weight, reliability=self.reliability, available=True,
+            note=note, group=self.group,
+        )
+
+
+METADATA_SIGNALS = [M1(), M2(), M3(), M4(), M5()]
