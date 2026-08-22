@@ -20,15 +20,17 @@ def load_manifest():
 def main():
     cfg = Config.load()
     results = []
-    # simple walk
     for mp3 in TESTDATA_ROOT.rglob("*.mp3"):
-        # derive id
-        label = "unknown"
-        # placeholder
-        # run analysis
-        # process_file returns probe, results, agg
-        # For brevity, skip actual processing
-        results.append({"file": str(mp3), "label": label})
+        try:
+            probe, sigs, agg = process_file(mp3, cfg, online=False, heavy=False)
+            results.append({
+                "file": str(mp3),
+                "ai_probability": round(agg.ai_probability, 4),
+                "verdict": agg.verdict,
+                "confidence": round(agg.confidence, 4)
+            })
+        except Exception as e:
+            results.append({"file": str(mp3), "error": str(e)})
     print(json.dumps(results, indent=2))
 
 if __name__ == "__main__":
