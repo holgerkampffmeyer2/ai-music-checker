@@ -5,8 +5,14 @@
     "context": 35
   },
   "criteria": {
-    "T1": { "threshold_khz": 16, "severe_khz": 14 },
-    "T2": { "crest_db_threshold": 8, "lra_lu_threshold": 3 },
+    "T1": {
+      "threshold_khz": 16,
+      "severe_khz": 14
+    },
+    "T2": {
+      "crest_db_threshold": 8,
+      "lra_lu_threshold": 3
+    },
     "M1": {
       "patterns": [
         "suno", "udio", "stable audio", "riffusion", "musicgen",
