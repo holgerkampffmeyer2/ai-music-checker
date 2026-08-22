@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 # Import vendored utils
 from ai_music_checker.lib.http import fetch_url
@@ -94,10 +97,10 @@ def validate_entry(entry: dict) -> bool:
         raise ValueError("ai_confidence must be one of: high, medium, low")
 
     if not isinstance(entry["aliases"], list):
-        raise ValueError("aliases must be a list")
+        raise TypeError("aliases must be a list")
 
     if not isinstance(entry["labels"], list):
-        raise ValueError("labels must be a list")
+        raise TypeError("labels must be a list")
 
     if not isinstance(entry["evidence"], list) or len(entry["evidence"]) == 0:
         raise ValueError("evidence must be a non-empty list")
@@ -158,7 +161,7 @@ def load_bundled() -> CommunityDB:
         from importlib.resources import files
         data = files("ai_music_checker.data").joinpath("known_ai_artists.json").read_text()
         return CommunityDB.from_dict(json.loads(data))
-    except Exception:
+    except (FileNotFoundError, json.JSONDecodeError, ModuleNotFoundError, KeyError):
         # Fallback: try local data file
         local_path = Path(__file__).parent.parent / "data" / "known_ai_artists.json"
         if local_path.exists():
@@ -167,7 +170,7 @@ def load_bundled() -> CommunityDB:
         # Last resort: minimal valid DB
         return CommunityDB(
             schema_version="1.0.0",
-            updated=datetime.now().strftime("%Y-%m-%d"),
+            updated=datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
             license="CC0-1.0",
             entries=[]
         )
@@ -180,21 +183,20 @@ def fetch_remote(url: str, cache_path: Path | None = None) -> CommunityDB | None
     elif isinstance(cache_path, str):
         cache_path = Path(cache_path)
 
-    headers = {}
     if cache_path.exists():
         # TODO: implement ETag/Last-Modified headers
         pass
 
     try:
         content = fetch_url(url, timeout=10)
-    except (TimeoutError, Exception):
+    except TimeoutError:
         # Network failure (timeout, DNS, connection refused, etc.) - try cache
         if cache_path.exists():
             try:
                 with open(cache_path) as f:
                     return CommunityDB.from_dict(json.load(f))
-            except Exception:
-                pass
+            except (json.JSONDecodeError, KeyError) as e:
+                logger.debug(f"Failed to parse cache: {e}")
         return None
 
     try:
@@ -204,14 +206,15 @@ def fetch_remote(url: str, cache_path: Path | None = None) -> CommunityDB | None
         with open(cache_path, "w") as f:
             json.dump(data, f)
         return CommunityDB.from_dict(data)
-    except Exception:
+    except (json.JSONDecodeError, ValueError) as e:
         # Corrupt data - try cache
+        logger.debug(f"Remote DB invalid: {e}")
         if cache_path.exists():
             try:
                 with open(cache_path) as f:
                     return CommunityDB.from_dict(json.load(f))
-            except Exception:
-                pass
+            except (json.JSONDecodeError, KeyError) as e2:
+                logger.debug(f"Cache also corrupt: {e2}")
         return None
 
 

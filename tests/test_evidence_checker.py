@@ -70,7 +70,7 @@ class TestEvidenceChecker:
         
         with patch("ai_music_checker.evidence_checker.fetch_url") as mock_fetch:
             # First call valid, second call raises exception
-            mock_fetch.side_effect = ["<html>Valid content here</html>", Exception("error")]
+            mock_fetch.side_effect = ["<html>Valid content here</html>", OSError("error")]
             
             results = check_database_evidence(db)
             

@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -34,8 +34,8 @@ class DBSuggestion:
             "labels": self.labels,
             "ai_confidence": self.ai_confidence,
             "evidence": self.evidence,
-            "added": datetime.now().strftime("%Y-%m-%d"),
-            "verified": datetime.now().strftime("%Y-%m-%d"),
+            "added": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
+            "verified": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
             "_suggestion": {
                 "reason": self.reason,
                 "indicators": self.indicators,
@@ -116,8 +116,8 @@ def suggest_from_signals(
         evidence.append({
             "url": f"local-analysis://{probe.path.name}",
             "note": f"Technical analysis: {', '.join(r.id for r in technical_hits)}",
-            "date": datetime.now().strftime("%Y-%m"),
-            "last_checked": datetime.now().strftime("%Y-%m-%d"),
+            "date": datetime.now(tz=timezone.utc).strftime("%Y-%m"),
+            "last_checked": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
             "status": "valid",
         })
     
@@ -127,8 +127,8 @@ def suggest_from_signals(
         evidence.append({
             "url": f"local-analysis://{probe.path.name}#metadata",
             "note": f"Metadata analysis: {', '.join(r.id for r in metadata_hits)}",
-            "date": datetime.now().strftime("%Y-%m"),
-            "last_checked": datetime.now().strftime("%Y-%m-%d"),
+            "date": datetime.now(tz=timezone.utc).strftime("%Y-%m"),
+            "last_checked": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
             "status": "valid",
         })
     
@@ -137,8 +137,8 @@ def suggest_from_signals(
         evidence.append({
             "url": f"local-analysis://{probe.path.name}",
             "note": f"AI probability: {ai_probability:.0%}, verdict: {verdict}",
-            "date": datetime.now().strftime("%Y-%m"),
-            "last_checked": datetime.now().strftime("%Y-%m-%d"),
+            "date": datetime.now(tz=timezone.utc).strftime("%Y-%m"),
+            "last_checked": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
             "status": "valid",
         })
     
@@ -196,7 +196,7 @@ def suggestions_to_json(suggestions: list[DBSuggestion]) -> str:
     """Convert suggestions to JSON format."""
     data = {
         "schema_version": "1.0.0",
-        "generated": datetime.now().isoformat(),
+        "generated": datetime.now(tz=timezone.utc).isoformat(),
         "suggestions": [s.to_dict() for s in suggestions],
     }
     return json.dumps(data, indent=2, ensure_ascii=False)

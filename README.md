@@ -156,6 +156,19 @@ ai-music-checker --show-config
 ai-music-checker track.mp3 --no-color
 ```
 
+### Evidence Checking
+
+```bash
+# Check evidence URLs in community database
+ai-music-checker --check-evidence
+
+# Suggest new DB entries from analyzed files
+ai-music-checker *.mp3 --suggest-db --min-ai-probability 0.7
+
+# Save suggestions to file
+ai-music-checker *.mp3 --suggest-db --save-suggestions suggestions.json
+```
+
 ### Environment Variables
 
 All config options can be overridden via environment variables with `AIMC_` prefix:
@@ -246,6 +259,14 @@ Precedence: **CLI > ENV (AIMC_) > config.json > defaults**
     "enabled": true,
     "url": "https://github.com/holgerkampffmeyer2/ai-artists-db/raw/main/known_ai_artists.json",
     "ttl_hours": 24
+  },
+  "evidence": {
+    "check_urls": false,
+    "timeout_s": 10
+  },
+  "db_suggest": {
+    "enabled": false,
+    "min_ai_probability": 0.6
   }
 }
 ```

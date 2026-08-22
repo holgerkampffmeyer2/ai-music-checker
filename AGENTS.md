@@ -86,6 +86,10 @@ ai-music-checker track.mp3 --no-color
 | `--config <path>` | Custom config.json |
 | `--max-workers <n>` | Parallel workers (default 5) |
 | `--recursive` | Recursive directory scan |
+| `--check-evidence` | Check evidence URLs in community DB and report status |
+| `--suggest-db` | Suggest new community DB entries based on analysis |
+| `--min-ai-probability` | Minimum AI probability to suggest DB entry (default: 0.6) |
+| `--save-suggestions <path>` | Save DB suggestions to JSON file |
 
 ## Exit Codes
 
@@ -153,7 +157,7 @@ Config file: `config.json` in project root.
 
 - `PLAN.md` — Full project spec, scoring model, JSON schema
 - `config.json` — Weights, thresholds, DB config
-- `tests/` — pytest suite (158 tests)
+- `tests/` — pytest suite (169 tests)
 - `.github/workflows/test.yml` — CI tests on push/PR
 - `.github/workflows/release.yml` — Build binaries on tag push (v*)
 - `pyinstaller/ai-music-checker.spec` — PyInstaller build config

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import shlex
 import subprocess
-from typing import Tuple
 
 
 class NetworkError(Exception):
@@ -15,16 +14,16 @@ def shq(s: str) -> str:
     return shlex.quote(s)
 
 
-def run_cmd(cmd: str, timeout: int = 60) -> Tuple[bool, str, str]:
+def run_cmd(cmd: str, timeout: int = 60) -> tuple[bool, str, str]:
     """Run shell command, return (success, stdout, stderr)."""
     try:
         proc = subprocess.run(
-            cmd, shell=True, capture_output=True, text=True, timeout=timeout
+            cmd, shell=True, capture_output=True, text=True, timeout=timeout, check=False
         )
         return proc.returncode == 0, proc.stdout, proc.stderr
     except subprocess.TimeoutExpired:
         return False, "", "Command timed out"
-    except Exception as e:
+    except (OSError, ValueError) as e:
         return False, "", str(e)
 
 
@@ -35,7 +34,7 @@ def retry(func, attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
     for i in range(attempts):
         try:
             return func()
-        except Exception as e:
+        except (OSError, ValueError) as e:
             last_exc = e
             if i < attempts - 1:
                 time.sleep(delay * (backoff ** i))

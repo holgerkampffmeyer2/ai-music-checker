@@ -1,11 +1,8 @@
 """Evidence URL checker — verify evidence URLs are still valid."""
 from __future__ import annotations
 
-import json
-import re
 from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
+from datetime import datetime, timezone
 from typing import Any
 
 from ai_music_checker.lib.http import fetch_url
@@ -24,7 +21,7 @@ def check_evidence_url(url: str, timeout: int = 10) -> EvidenceStatus:
     
     Returns EvidenceStatus with status "valid", "broken", or "outdated".
     """
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
     
     try:
         content = fetch_url(url, timeout=timeout)
@@ -66,7 +63,7 @@ def check_evidence_url(url: str, timeout: int = 10) -> EvidenceStatus:
             last_checked=today,
             note="Timeout after 10s"
         )
-    except Exception as e:
+    except (OSError, ValueError) as e:
         return EvidenceStatus(
             url=url,
             status="broken",
@@ -158,6 +155,6 @@ def update_evidence_in_entry(entry: dict[str, Any],
         updated_evidence.append(updated_ev)
     
     updated_entry["evidence"] = updated_evidence
-    updated_entry["verified"] = datetime.now().strftime("%Y-%m-%d")
+    updated_entry["verified"] = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
     
     return updated_entry

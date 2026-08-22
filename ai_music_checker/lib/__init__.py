@@ -1,10 +1,15 @@
 """Vendored utilities package."""
-from .shell import run_cmd, shq, retry, NetworkError
-from .http import fetch_url, load_env, NetworkError as HTTPNetworkError
-from .match import clean_title_for_search, calculate_match_confidence
+from .http import NetworkError, fetch_url, load_env
+from .match import calculate_match_confidence, clean_title_for_search
+from .shell import retry, run_cmd, shq
 
 __all__ = [
-    "run_cmd", "shq", "retry", "NetworkError",
-    "fetch_url", "load_env",
-    "clean_title_for_search", "calculate_match_confidence",
+    "NetworkError",
+    "calculate_match_confidence",
+    "clean_title_for_search",
+    "fetch_url",
+    "load_env",
+    "retry",
+    "run_cmd",
+    "shq",
 ]

@@ -6,11 +6,11 @@ import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 ENV_PREFIX = "AIMC_"
 
-DEFAULTS: Dict[str, Any] = {
+DEFAULTS: dict[str, Any] = {
     "weights": {"technical": 40, "metadata": 25, "context": 35},
     "criteria": {
         "T1": {"threshold_khz": 16, "severe_khz": 14},
@@ -48,10 +48,18 @@ DEFAULTS: Dict[str, Any] = {
         "max_tokens": 1500,
         "prompt_template": "builtin_v1",
     },
+    "evidence": {
+        "check_urls": False,
+        "timeout_s": 10,
+    },
+    "db_suggest": {
+        "enabled": False,
+        "min_ai_probability": 0.6,
+    },
 }
 
 
-def deep_update(base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+def deep_update(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
     """Recursively merge `override` into `base` (returns new dict)."""
     out = dict(base)
     for key, value in override.items():
@@ -79,25 +87,27 @@ def _parse_env_value(raw: str) -> Any:
 
 @dataclass
 class Config:
-    weights: Dict[str, int] = field(default_factory=lambda: dict(DEFAULTS["weights"]))
-    criteria: Dict[str, Any] = field(default_factory=lambda: json.loads(json.dumps(DEFAULTS["criteria"])))
-    metadata_sources: List[str] = field(default_factory=lambda: list(DEFAULTS["metadata_sources"]))
+    weights: dict[str, int] = field(default_factory=lambda: dict(DEFAULTS["weights"]))
+    criteria: dict[str, Any] = field(default_factory=lambda: json.loads(json.dumps(DEFAULTS["criteria"])))
+    metadata_sources: list[str] = field(default_factory=lambda: list(DEFAULTS["metadata_sources"]))
     soundcloud_client_id_env: str = DEFAULTS["soundcloud_client_id_env"]
     request_timeout_s: int = DEFAULTS["request_timeout_s"]
     retry_attempts: int = DEFAULTS["retry_attempts"]
-    community_db: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["community_db"]))
-    llm_judge: Dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["llm_judge"]))
+    community_db: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["community_db"]))
+    llm_judge: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["llm_judge"]))
+    evidence: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["evidence"]))
+    db_suggest: dict[str, Any] = field(default_factory=lambda: dict(DEFAULTS["db_suggest"]))
 
     @classmethod
     def load(
         cls,
-        cli_overrides: Optional[Dict[str, Any]] = None,
-        config_path: Optional[str | Path] = None,
-        environ: Optional[Dict[str, str]] = None,
-    ) -> "Config":
+        cli_overrides: dict[str, Any] | None = None,
+        config_path: str | Path | None = None,
+        environ: dict[str, str] | None = None,
+    ) -> Config:
         env = dict(os.environ if environ is None else environ)
 
-        merged: Dict[str, Any] = {}
+        merged: dict[str, Any] = {}
         file_data = cls._read_config_file(config_path)
         if file_data:
             merged = deep_update(merged, file_data)
@@ -109,11 +119,11 @@ class Config:
         return cls._from_dict(full)
 
     @staticmethod
-    def _defaults_snapshot() -> Dict[str, Any]:
+    def _defaults_snapshot() -> dict[str, Any]:
         return json.loads(json.dumps(DEFAULTS))
 
     @staticmethod
-    def _read_config_file(config_path: Optional[str | Path]) -> Dict[str, Any]:
+    def _read_config_file(config_path: str | Path | None) -> dict[str, Any]:
         if config_path is None:
             repo_default = Path(__file__).resolve().parent.parent / "config.json"
             config_path = repo_default if repo_default.exists() else None
@@ -127,9 +137,9 @@ class Config:
             return {}
 
     @staticmethod
-    def _env_overrides(env: Dict[str, str]) -> Dict[str, Any]:
+    def _env_overrides(env: dict[str, str]) -> dict[str, Any]:
         section_names = ("community_db", "llm_judge", "weights", "criteria")
-        overrides: Dict[str, Any] = {}
+        overrides: dict[str, Any] = {}
         for key, raw in env.items():
             if not key.startswith(ENV_PREFIX):
                 continue
@@ -151,13 +161,13 @@ class Config:
         return overrides
 
     @staticmethod
-    def _cli_overrides(cli_overrides: Dict[str, Any]) -> Dict[str, Any]:
-        overrides: Dict[str, Any] = {}
+    def _cli_overrides(cli_overrides: dict[str, Any]) -> dict[str, Any]:
+        overrides: dict[str, Any] = {}
         for key, value in cli_overrides.items():
             if value is None:
                 continue
             path = key.lower().split(".")
-            node: Dict[str, Any] = overrides
+            node: dict[str, Any] = overrides
             for part in path[:-1]:
                 node = node.setdefault(part, {})
             node[path[-1]] = value
@@ -195,7 +205,7 @@ class Config:
         return value if isinstance(value, str) else default
 
     @classmethod
-    def _from_dict(cls, data: Dict[str, Any]) -> "Config":
+    def _from_dict(cls, data: dict[str, Any]) -> Config:
         cfg = cls()
         defaults = cls._defaults_snapshot()
         for key in defaults:

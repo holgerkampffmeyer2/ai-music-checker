@@ -2,13 +2,10 @@
 from __future__ import annotations
 
 import os
-import re
 import time
 from pathlib import Path
-from typing import Optional
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from urllib.error import URLError, HTTPError
-
 
 DEFAULT_TIMEOUT = 10
 USER_AGENT = "ai-music-checker/0.1.0 (+https://github.com/holgerkampffmeyer2/ai-music-checker)"
@@ -16,7 +13,6 @@ USER_AGENT = "ai-music-checker/0.1.0 (+https://github.com/holgerkampffmeyer2/ai-
 
 class NetworkError(Exception):
     """Network-related error."""
-    pass
 
 
 def load_env() -> None:
@@ -31,7 +27,7 @@ def load_env() -> None:
                     os.environ.setdefault(key.strip(), val.strip())
 
 
-def fetch_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> Optional[str]:
+def fetch_url(url: str, timeout: int = DEFAULT_TIMEOUT) -> str | None:
     """Fetch URL with retries and error handling."""
     load_env()
     req = Request(url, headers={"User-Agent": USER_AGENT})
@@ -54,7 +50,7 @@ def retry(func, attempts: int = 3, delay: float = 1.0, backoff: float = 2.0):
     for i in range(attempts):
         try:
             return func()
-        except Exception as e:
+        except (OSError, ValueError) as e:
             last_exc = e
             if i < attempts - 1:
                 time.sleep(delay * (backoff ** i))

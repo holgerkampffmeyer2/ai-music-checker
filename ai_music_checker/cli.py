@@ -182,20 +182,17 @@ def load_signals(online: bool, config: Config, heavy: bool = False) -> list[Any]
     
     # Add context signals if online
     if online and CONTEXT_AVAILABLE:
-        for sig in context.CONTEXT_SIGNALS:
-            all_signals.append(sig)
+        all_signals.extend(context.CONTEXT_SIGNALS)
     
     # Add SoundCloud signals if online
     if online and SOUNDCLOUD_AVAILABLE:
-        for sig in soundcloud.SOUNDCLOUD_SIGNALS:
-            all_signals.append(sig)
+        all_signals.extend(soundcloud.SOUNDCLOUD_SIGNALS)
     
     # Add heavy signals if enabled
     if heavy:
         try:
             from ai_music_checker.signals import heavy as heavy_signals
-            for sig in heavy_signals.HEAVY_SIGNALS:
-                all_signals.append(sig)
+            all_signals.extend(heavy_signals.HEAVY_SIGNALS)
         except ImportError:
             pass  # heavy.py not implemented yet
     
@@ -245,7 +242,7 @@ def _process_file_wrapper(args: tuple) -> tuple[Path, FileProbe, list[Any], Aggr
     try:
         probe, results, agg = process_file(filepath, config, online, heavy)
         return (filepath, probe, results, agg, None)
-    except Exception as e:
+    except (OSError, ValueError, RuntimeError) as e:
         return (filepath, None, None, None, str(e))
 
 
@@ -314,7 +311,7 @@ def main() -> int:
         except ProbeError as e:
             print(f"ERROR: {e}", file=sys.stderr)
             return 1
-        except Exception as e:
+        except (OSError, ValueError) as e:
             print(f"ERROR processing {filepath}: {e}", file=sys.stderr)
             return 1
         
@@ -374,7 +371,7 @@ def main() -> int:
         for filepath in audio_files:
             try:
                 probe, results, agg = process_file(filepath, config, args.online, args.heavy)
-            except Exception as e:
+            except (OSError, ValueError) as e:
                 print(f"ERROR {filepath.name}: {e}", file=sys.stderr)
                 error_count += 1
                 continue
@@ -458,7 +455,7 @@ def _handle_suggest_db(args: argparse.Namespace) -> int:
         print("ERROR: No files provided for suggestion. Use --help for usage.", file=sys.stderr)
         return 1
     
-    from ai_music_checker.db_suggester import suggest_from_signals, save_suggestions
+    from ai_music_checker.db_suggester import save_suggestions, suggest_from_signals
     
     # Load config
     cli_overrides = {}
@@ -482,7 +479,7 @@ def _handle_suggest_db(args: argparse.Namespace) -> int:
     for filepath in audio_files:
         try:
             probe, results, agg = process_file(filepath, config, args.online, args.heavy)
-        except Exception as e:
+        except (OSError, ValueError) as e:
             print(f"ERROR {filepath.name}: {e}", file=sys.stderr)
             continue
         

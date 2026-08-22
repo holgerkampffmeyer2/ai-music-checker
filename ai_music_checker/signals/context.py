@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from ai_music_checker.community_db import CommunityDB, confidence_to_subscore, lookup_artist
@@ -347,8 +348,7 @@ class C3(BaseContextSignal):
             date = rec.get("first-release-date")
             if date:
                 year = int(date[:4])
-                from datetime import datetime
-                return datetime.now().year - year
+                return datetime.now(tz=timezone.utc).year - year
         except (json.JSONDecodeError, OSError, TimeoutError, ValueError):
             pass
         return None
@@ -365,8 +365,7 @@ class C3(BaseContextSignal):
                 return None
             year = results[0].get("year")
             if year:
-                from datetime import datetime
-                return datetime.now().year - int(year)
+                return datetime.now(tz=timezone.utc).year - int(year)
         except (json.JSONDecodeError, OSError, TimeoutError, ValueError):
             pass
         return None
@@ -400,7 +399,7 @@ class C4(BaseContextSignal):
         urls: list[str] = []
         
         # Extract URLs from comment, description, etc.
-        for key, val in tags.items():
+        for val in tags.values():
             if isinstance(val, str):
                 found = re.findall(r'https?://\S+', val)
                 urls.extend(found)

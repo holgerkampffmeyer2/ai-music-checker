@@ -26,7 +26,7 @@ def _load_schema() -> dict[str, Any]:
         from importlib.resources import files
         data = files("ai_music_checker.data").joinpath("schema.json").read_text()
         _SCHEMA_CACHE = json.loads(data)
-    except Exception:
+    except (FileNotFoundError, json.JSONDecodeError, ModuleNotFoundError):
         # Fallback: try local file
         local_path = Path(__file__).parent.parent / "data" / "schema.json"
         if local_path.exists():
