@@ -104,14 +104,15 @@ class TestT1HfEnergyProfile:
             res = t.T1().compute(probe, config)
         assert res.subscore == pytest.approx(0.9)
 
-    def test_unparseable_output_raises(self, config, tmp_path):
+    def test_unparseable_output_returns_neutral(self, config, tmp_path):
         import ai_music_checker.signals.technical as t
 
         probe = make_probe(tmp_path)
         with patch("ai_music_checker.signals.technical.run_cmd") as mc:
             mc.return_value = (True, "no mean_volume here", "")
-            with pytest.raises(ValueError, match="volumedetect"):
-                t.T1().compute(probe, config)
+            res = t.T1().compute(probe, config)
+        assert res.subscore == 0.5
+        assert "volumedetect output missing mean_volume" in res.note
 
 
 # ────────────────────────────────────────────── T2

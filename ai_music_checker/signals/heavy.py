@@ -36,7 +36,7 @@ def _parse_spectrumpic_stderr(stderr: str) -> dict[str, float]:
 def _run_fft_analysis(probe: FileProbe, freq_low: float, freq_high: float) -> float | None:
     """Run FFT analysis on a frequency band and return average energy in dB."""
     cmd = (
-        f"ffmpeg -i {shq(str(probe.path))} "
+        f"ffmpeg -i {shq(str(probe.path))} -vn "
         f"-af showfreqs=mode=line:fscale=log:size=2048:win_func=hanning "
         f"-f null - 2>&1"
     )
@@ -68,7 +68,7 @@ class T8(BaseSignal):
         # Neural codecs often create mirror artifacts around this point
         
         cmd = (
-            f"ffmpeg -i {shq(str(probe.path))} "
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
             f"-af highpass=f={int(nyquist_half - 1000)},lowpass=f={int(nyquist_half + 1000)},"
             f"volumedetect -f null - 2>&1"
         )
@@ -136,7 +136,7 @@ class T9(BaseSignal):
         
         # Use astats to measure correlation between channels
         cmd = (
-            f"ffmpeg -i {shq(str(probe.path))} "
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
             f"-af astats=metadata=1:measure_perchannel=1 "
             f"-f null - 2>&1"
         )
@@ -187,7 +187,7 @@ class T9(BaseSignal):
         """Fallback mid/side energy analysis."""
         # Overall energy
         cmd1 = (
-            f"ffmpeg -i {shq(str(probe.path))} "
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
             f"-af volumedetect -f null - 2>&1"
         )
         _ok1, _out1, err1 = run_cmd(cmd1, timeout=60)
@@ -202,7 +202,7 @@ class T9(BaseSignal):
         
         # Side channel (L - R)
         cmd2 = (
-            f"ffmpeg -i {shq(str(probe.path))} "
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
             f"-af pan=mono|c0=0.5*c0-0.5*c1,volumedetect -f null - 2>&1"
         )
         _ok2, _out2, err2 = run_cmd(cmd2, timeout=60)
@@ -248,7 +248,7 @@ class T10(BaseSignal):
         """Measure transient sharpness via onset detection."""
         # Use ffmpeg's silencedetect with very short threshold to find transients
         cmd = (
-            f"ffmpeg -i {shq(str(probe.path))} "
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
             f"-af silencedetect=noise=-40dB:d=0.01 "
             f"-f null - 2>&1"
         )
@@ -313,7 +313,7 @@ class T12(BaseSignal):
         # that correlate with stem quality
         
         cmd = (
-            f"ffmpeg -i {shq(str(probe.path))} "
+            f"ffmpeg -i {shq(str(probe.path))} -vn "
             f"-af astats=metadata=0 "
             f"-f null - 2>&1"
         )

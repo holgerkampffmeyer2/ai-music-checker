@@ -116,17 +116,17 @@ class T1(BaseSignal):
         sev_hz = int(sev_khz * 1000)
 
         cmd = (
-            f"ffmpeg -v info -i {shq(str(probe.path))} "
+            f"ffmpeg -v info -i {shq(str(probe.path))} -vn "
             f"-af highpass=f={th_hz},volumedetect -f null - 2>&1"
         )
         ok, _out, _err = run_cmd(cmd, timeout=60)
         if not ok:
-            raise RuntimeError(f"T1 ffprobe failed: {_err}")
+            return SignalResult(id=self.id, name=self.name, value=0.0, subscore=0.5, weight=self.weight, reliability=self.reliability*0.5, available=True, note="ffmpeg failed", group=self.group)
         vol_th = _parse_volumedetect(_out)
         mean_th = vol_th.get("mean_volume")
 
         if mean_th is None:
-            raise ValueError("volumedetect output missing mean_volume")
+            return SignalResult(id=self.id, name=self.name, value=0.0, subscore=0.5, weight=self.weight, reliability=self.reliability*0.5, available=True, note="volumedetect output missing mean_volume", group=self.group)
 
         # Primary scoring from threshold pass
         if mean_th > -70:
@@ -134,7 +134,7 @@ class T1(BaseSignal):
         elif mean_th <= -90:
             # Check severe pass for hard cutoff distinction
             cmd2 = (
-                f"ffmpeg -v info -i {shq(str(probe.path))} "
+                f"ffmpeg -v info -i {shq(str(probe.path))} -vn "
                 f"-af highpass=f={sev_hz},volumedetect -f null - 2>&1"
             )
             _ok2, _out2, _ = run_cmd(cmd2, timeout=60)
@@ -172,7 +172,7 @@ class T2(BaseSignal):
 
         # loudnorm pass
         cmd1 = (
-            f"ffmpeg -v info -i {shq(str(probe.path))} "
+            f"ffmpeg -v info -i {shq(str(probe.path))} -vn "
             f"-af loudnorm=print_format=json -f null - 2>&1"
         )
         _ok1, _out1, _ = run_cmd(cmd1, timeout=60)
@@ -190,7 +190,7 @@ class T2(BaseSignal):
 
         # astats for crest
         cmd2 = (
-            f"ffmpeg -v info -i {shq(str(probe.path))} "
+            f"ffmpeg -v info -i {shq(str(probe.path))} -vn "
             f"-af astats=metadata=0 -f null - 2>&1"
         )
         _ok2, _out2, _ = run_cmd(cmd2, timeout=60)
@@ -240,7 +240,7 @@ class T3(BaseSignal):
 
         # Overall
         cmd1 = (
-            f"ffmpeg -v info -i {shq(str(probe.path))} "
+            f"ffmpeg -v info -i {shq(str(probe.path))} -vn "
             f"-af volumedetect -f null - 2>&1"
         )
         _ok1, _out1, _ = run_cmd(cmd1, timeout=60)
@@ -249,7 +249,7 @@ class T3(BaseSignal):
 
         # Side channel (L - R) / 2 via pan
         cmd2 = (
-            f"ffmpeg -v info -i {shq(str(probe.path))} "
+            f"ffmpeg -v info -i {shq(str(probe.path))} -vn "
             f"-af pan=mono|c0=0.5*c0-0.5*c1,volumedetect -f null - 2>&1"
         )
         _ok2, _out2, _ = run_cmd(cmd2, timeout=60)
@@ -285,7 +285,7 @@ class T4(BaseSignal):
     def compute(self, probe: FileProbe, config: Config) -> SignalResult:
         dur = probe.duration or 0
         cmd = (
-            f"ffmpeg -v info -i {shq(str(probe.path))} "
+            f"ffmpeg -v info -i {shq(str(probe.path))} -vn "
             f"-af silencedetect=noise=-50dB:d=0.5 -f null - 2>&1"
         )
         ok, _out, _ = run_cmd(cmd, timeout=60)

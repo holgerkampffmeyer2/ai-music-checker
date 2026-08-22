@@ -6,6 +6,7 @@ import os
 import re
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
+from urllib.parse import quote_plus
 
 from ai_music_checker.community_db import CommunityDB, confidence_to_subscore, lookup_artist
 from ai_music_checker.lib.http import fetch_url, load_env
@@ -93,7 +94,8 @@ class C1(BaseContextSignal):
     
     def _check_musicbrainz(self, artist: str) -> str | None:
         try:
-            url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{artist}&fmt=json&limit=1"
+            q = quote_plus(artist)
+            url = f"https://musicbrainz.org/ws/2/artist/?query=artist:{q}&fmt=json&limit=1"
             data = fetch_url(url, timeout=5)
             if not data:
                 return None
@@ -107,7 +109,8 @@ class C1(BaseContextSignal):
     
     def _check_discogs(self, artist: str) -> str | None:
         try:
-            url = f"https://api.discogs.com/database/search?q={artist}&type=artist&per_page=1"
+            q = quote_plus(artist)
+            url = f"https://api.discogs.com/database/search?q={q}&type=artist&per_page=1"
             data = fetch_url(url, timeout=5)
             if not data:
                 return None
@@ -124,7 +127,8 @@ class C1(BaseContextSignal):
         if not client_id:
             return None
         try:
-            url = f"https://api-v2.soundcloud.com/search?q={artist}&client_id={client_id}&limit=1"
+            q = quote_plus(artist)
+            url = f"https://api-v2.soundcloud.com/search?q={q}&client_id={client_id}&limit=1"
             data = fetch_url(url, timeout=5)
             if not data:
                 return None
