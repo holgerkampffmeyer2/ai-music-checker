@@ -18,7 +18,7 @@ jobs:
           python-version: '3.13'
 
       - name: Install dependencies
-        run: pip install -e . pytest pytest-cov ruff
+        run: pip install -e . pytest pytest-cov "ruff==0.16.4"
 
       - name: Lint
         run: ruff check ai_music_checker/
