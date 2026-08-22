@@ -133,6 +133,11 @@ def parse_args() -> argparse.Namespace:
         metavar="FILE",
         help="Save DB suggestions to JSON file",
     )
+    parser.add_argument(
+        "--llm",
+        action="store_true",
+        help="Enable optional LLM second-opinion judge",
+    )
     return parser.parse_args()
 
 
@@ -208,6 +213,7 @@ def process_file(
     config: Config,
     online: bool,
     heavy: bool = False,
+    llm: bool = False,
 ) -> tuple[FileProbe, list[Any], AggregateResult]:
     """Process a single audio file.
     
@@ -216,6 +222,7 @@ def process_file(
         config: Configuration object
         online: Enable online context signals
         heavy: Enable compute-intensive signals
+        llm: Enable LLM second-opinion judge
     """
     # Probe the file
     probe = probe_file(filepath)
@@ -242,9 +249,9 @@ def process_file(
 
 def _process_file_wrapper(args: tuple) -> tuple[Path, FileProbe, list[Any], AggregateResult, str | None]:
     """Wrapper for parallel processing."""
-    filepath, config, online, heavy = args
+    filepath, config, online, heavy, llm = args
     try:
-        probe, results, agg = process_file(filepath, config, online, heavy)
+        probe, results, agg = process_file(filepath, config, online, heavy, llm)
         return (filepath, probe, results, agg, None)
     except (OSError, ValueError, RuntimeError) as e:
         return (filepath, None, None, None, str(e))
@@ -311,7 +318,7 @@ def main() -> int:
     if len(audio_files) == 1:
         filepath = audio_files[0]
         try:
-            probe, results, agg = process_file(filepath, config, args.online, args.heavy)
+            probe, results, agg = process_file(filepath, config, args.online, args.heavy, args.llm)
         except ProbeError as e:
             print(f"ERROR: {e}", file=sys.stderr)
             return 1
@@ -343,7 +350,7 @@ def main() -> int:
         print(f"Processing {len(audio_files)} files in parallel (max {args.max_workers} workers)...")
         with ProcessPoolExecutor(max_workers=min(args.max_workers, len(audio_files))) as executor:
             futures = {
-                executor.submit(_process_file_wrapper, (fp, config, args.online, args.heavy)): fp
+                executor.submit(_process_file_wrapper, (fp, config, args.online, args.heavy, args.llm)): fp
                 for fp in audio_files
             }
             for future in as_completed(futures):
@@ -374,7 +381,7 @@ def main() -> int:
         print(f"Processing {len(audio_files)} files...")
         for filepath in audio_files:
             try:
-                probe, results, agg = process_file(filepath, config, args.online, args.heavy)
+                probe, results, agg = process_file(filepath, config, args.online, args.heavy, args.llm)
             except (OSError, ValueError) as e:
                 print(f"ERROR {filepath.name}: {e}", file=sys.stderr)
                 error_count += 1
