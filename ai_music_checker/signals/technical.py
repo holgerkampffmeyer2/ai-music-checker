@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import json
-import re
-from typing import TYPE_CHECKING, Any, List, Tuple
+from typing import TYPE_CHECKING, Any
 
 from ai_music_checker.lib.shell import run_cmd, shq
 from ai_music_checker.signals import SignalResult
@@ -51,13 +50,13 @@ def _parse_loudnorm_json(stderr: str) -> dict[str, float] | None:
         data = json.loads(stderr[start:end + 1])
     except json.JSONDecodeError:
         return None
-    out = {}
+    _out = {}
     for k in ("input_i", "input_lra", "input_tp", "input_thresh"):
         try:
-            out[k] = float(data.get(k, 0))
+            _out[k] = float(data.get(k, 0))
         except (TypeError, ValueError):
-            out[k] = 0.0
-    return out
+            _out[k] = 0.0
+    return _out
 
 
 def _parse_astats(stderr: str) -> dict[str, float]:
@@ -77,9 +76,9 @@ def _parse_astats(stderr: str) -> dict[str, float]:
     return {"peak_db": peak, "rms_db": rms}
 
 
-def _parse_silencedetect(stderr: str) -> List[Tuple[float, float]]:
+def _parse_silencedetect(stderr: str) -> list[tuple[float, float]]:
     """Parse silencedetect start/end pairs."""
-    blocks: List[Tuple[float, float]] = []
+    blocks: list[tuple[float, float]] = []
     start = None
     for line in stderr.splitlines():
         if "silence_start:" in line:
@@ -121,10 +120,10 @@ class T1(BaseSignal):
             f"ffmpeg -v info -i {shq(str(probe.path))} "
             f"-af highpass=f={th_hz},volumedetect -f null - 2>&1"
         )
-        ok, out, err = run_cmd(cmd, timeout=60)
+        ok, _out, _err = run_cmd(cmd, timeout=60)
         if not ok:
-            raise RuntimeError(f"T1 ffprobe failed: {err}")
-        vol_th = _parse_volumedetect(out)
+            raise RuntimeError(f"T1 ffprobe failed: {_err}")
+        vol_th = _parse_volumedetect(_out)
         mean_th = vol_th.get("mean_volume")
 
         if mean_th is None:
@@ -139,8 +138,8 @@ class T1(BaseSignal):
                 f"ffmpeg -v info -i {shq(str(probe.path))} "
                 f"-af highpass=f={sev_hz},volumedetect -f null - 2>&1"
             )
-            ok2, out2, _ = run_cmd(cmd2, timeout=60)
-            mean_sev = _parse_volumedetect(out2).get("mean_volume") or -999
+            _ok2, _out2, _ = run_cmd(cmd2, timeout=60)
+            mean_sev = _parse_volumedetect(_out2).get("mean_volume") or -999
             subscore = 1.0 if mean_sev <= -90 else 0.9
         else:
             # Ramp from -70 (0) to -90 (1)
@@ -177,10 +176,10 @@ class T2(BaseSignal):
             f"ffmpeg -v info -i {shq(str(probe.path))} "
             f"-af loudnorm=print_format=json -f null - 2>&1"
         )
-        ok1, out1, _ = run_cmd(cmd1, timeout=60)
-        if not ok1:
+        _ok1, _out1, _ = run_cmd(cmd1, timeout=60)
+        if not _ok1:
             raise RuntimeError("T2 loudnorm failed")
-        loud = _parse_loudnorm_json(out1)
+        loud = _parse_loudnorm_json(_out1)
         if loud is None:
             return SignalResult(
                 id=self.id, name=self.name, value=0.0, subscore=0.0,
@@ -195,10 +194,10 @@ class T2(BaseSignal):
             f"ffmpeg -v info -i {shq(str(probe.path))} "
             f"-af astats=metadata=0 -f null - 2>&1"
         )
-        ok2, out2, _ = run_cmd(cmd2, timeout=60)
-        if not ok2:
+        _ok2, _out2, _ = run_cmd(cmd2, timeout=60)
+        if not _ok2:
             raise RuntimeError("T2 astats failed")
-        stats = _parse_astats(out2)
+        stats = _parse_astats(_out2)
         peak = stats.get("peak_db")
         rms = stats.get("rms_db")
         if peak is None or rms is None:
@@ -245,8 +244,8 @@ class T3(BaseSignal):
             f"ffmpeg -v info -i {shq(str(probe.path))} "
             f"-af volumedetect -f null - 2>&1"
         )
-        ok1, out1, _ = run_cmd(cmd1, timeout=60)
-        vol_ov = _parse_volumedetect(out1)
+        _ok1, _out1, _ = run_cmd(cmd1, timeout=60)
+        vol_ov = _parse_volumedetect(_out1)
         mean_ov = vol_ov.get("mean_volume") or -60
 
         # Side channel (L - R) / 2 via pan
@@ -254,8 +253,8 @@ class T3(BaseSignal):
             f"ffmpeg -v info -i {shq(str(probe.path))} "
             f"-af pan=mono|c0=0.5*c0-0.5*c1,volumedetect -f null - 2>&1"
         )
-        ok2, out2, _ = run_cmd(cmd2, timeout=60)
-        vol_si = _parse_volumedetect(out2)
+        _ok2, _out2, _ = run_cmd(cmd2, timeout=60)
+        vol_si = _parse_volumedetect(_out2)
         mean_si = vol_si.get("mean_volume") or -100
 
         side_rel = mean_si - mean_ov  # negative dB relative
@@ -290,11 +289,11 @@ class T4(BaseSignal):
             f"ffmpeg -v info -i {shq(str(probe.path))} "
             f"-af silencedetect=noise=-50dB:d=0.5 -f null - 2>&1"
         )
-        ok, out, _ = run_cmd(cmd, timeout=60)
+        ok, _out, _ = run_cmd(cmd, timeout=60)
         if not ok:
             raise RuntimeError("T4 silencedetect failed")
 
-        blocks = _parse_silencedetect(out)
+        blocks = _parse_silencedetect(_out)
         interior = [
             (s, e) for s, e in blocks
             if s > 2.0 and e < max(0, dur - 2.0)
@@ -326,7 +325,7 @@ class T5(BaseSignal):
     weight = 5
     reliability = 0.7
 
-    LOSSY_CODECS = {"mp3", "aac", "ogg", "opus", "m4a", "wma"}
+    LOSSY_CODECS: frozenset[str] = frozenset({"mp3", "aac", "ogg", "opus", "m4a", "wma"})
 
     def compute(self, probe: FileProbe, config: Config) -> SignalResult:
         patterns = [p.lower() for p in _criteria_value(config, "M1", "patterns") or []]

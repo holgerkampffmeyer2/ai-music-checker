@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ai_music_checker.lib.shell import run_cmd, shq
 
@@ -20,16 +20,16 @@ class ProbeError(RuntimeError):
 class FileProbe:
     path: Path
     format_name: str = ""
-    duration: Optional[float] = None
-    bitrate: Optional[int] = None
-    sample_rate: Optional[int] = None
-    channels: Optional[int] = None
-    codec: Optional[str] = None
-    tags: Dict[str, str] = field(default_factory=dict)
-    streams: List[Dict[str, Any]] = field(default_factory=list)
+    duration: float | None = None
+    bitrate: int | None = None
+    sample_rate: int | None = None
+    channels: int | None = None
+    codec: str | None = None
+    tags: dict[str, str] = field(default_factory=dict)
+    streams: list[dict[str, Any]] = field(default_factory=list)
 
     @property
-    def audio_stream(self) -> Optional[Dict[str, Any]]:
+    def audio_stream(self) -> dict[str, Any] | None:
         for s in self.streams:
             if s.get("codec_type") == "audio":
                 return s
@@ -47,21 +47,21 @@ class FileProbe:
         return False
 
 
-def _to_float(value: Any) -> Optional[float]:
+def _to_float(value: Any) -> float | None:
     try:
         return float(value)
     except (TypeError, ValueError):
         return None
 
 
-def _to_int(value: Any) -> Optional[int]:
+def _to_int(value: Any) -> int | None:
     try:
         return int(float(value))
     except (TypeError, ValueError):
         return None
 
 
-def _normalize_tags(raw: Any) -> Dict[str, str]:
+def _normalize_tags(raw: Any) -> dict[str, str]:
     if not isinstance(raw, dict):
         return {}
     return {str(k).lower(): str(v) for k, v in raw.items()}
@@ -86,7 +86,7 @@ def probe_file(path: str | Path) -> FileProbe:
     if not isinstance(streams, list):
         streams = []
 
-    tags: Dict[str, str] = {}
+    tags: dict[str, str] = {}
     for source in [fmt.get("tags")] + [s.get("tags") for s in streams]:
         tags.update(_normalize_tags(source))
 

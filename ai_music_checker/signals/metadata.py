@@ -5,7 +5,7 @@ Weights/reliabilities per PLAN.md §4:
 - M1 watermark_scan    w=12 r=0.9
 - M2 identifier_gaps   w=7  r=0.5
 - M3 cover_provenance  w=5  r=0.6
-- M4 naming_heuristics w=6  r=0.4
+- M4 naming_heuristics w=4  r=0.4 (reduced from 6 for lower FP rate)
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ import os
 import re
 import shutil
 import tempfile
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any
 
 from ai_music_checker.signals import SignalResult
 
@@ -63,7 +63,7 @@ class M1(BaseSignal):
         patterns = [p.lower() for p in _criteria_value(config, "M1", "patterns") or []]
         whitelist = [w.lower() for w in _criteria_value(config, "M1", "whitelist") or []]
 
-        hits: List[str] = []
+        hits: list[str] = []
         for tag_key, value in (probe.tags or {}).items():
             cleaned = str(value).lower()
             for term in whitelist:
@@ -109,7 +109,7 @@ class M2(BaseSignal):
         )
 
 
-def _cover_software_strings(probe: FileProbe) -> List[str]:
+def _cover_software_strings(probe: FileProbe) -> list[str]:
     """Extract embedded artwork and read its EXIF/comment strings via exiftool."""
     if shutil.which("exiftool") is None:
         return []
@@ -172,7 +172,7 @@ _M4_SCORE_MAP = {0: 0.0, 1: 0.35, 2: 0.65}
 class M4(BaseSignal):
     id = "M4"
     name = "naming_heuristics"
-    weight = 6
+    weight = 4  # Reduced from 6 for lower false positive rate
     reliability = 0.4
 
     def compute(self, probe: FileProbe, config: Config) -> SignalResult:
@@ -180,7 +180,7 @@ class M4(BaseSignal):
         suffixes = _criteria_value(config, "M4", "suffixes") or []
 
         stem = probe.path.stem.replace("_", " ")
-        notes: List[str] = []
+        notes: list[str] = []
 
         catalog_match = _CATALOG_RE.search(stem)
         artist_part = None

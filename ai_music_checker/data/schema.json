@@ -1,0 +1,101 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Music Checker Analysis Result",
+  "type": "object",
+  "required": ["schema_version", "file", "provenance", "signals", "groups", "result"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "file": {
+      "type": "object",
+      "required": ["path", "name", "format", "duration_s", "bitrate_bps", "sample_rate_hz", "channels", "codec"],
+      "properties": {
+        "path": {"type": "string"},
+        "name": {"type": "string"},
+        "format": {"type": "string"},
+        "duration_s": {"type": ["number", "null"]},
+        "bitrate_bps": {"type": ["integer", "null"]},
+        "sample_rate_hz": {"type": ["integer", "null"]},
+        "channels": {"type": ["integer", "null"]},
+        "codec": {"type": ["string", "null"]}
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["encoder", "tags_present", "tag_keys", "has_cover_stream"],
+      "properties": {
+        "encoder": {"type": ["string", "null"]},
+        "tags_present": {"type": "boolean"},
+        "tag_keys": {"type": "array", "items": {"type": "string"}},
+        "has_cover_stream": {"type": "boolean"}
+      }
+    },
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "group", "value", "subscore", "weight", "reliability", "available", "note"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "group": {"type": "string", "enum": ["technical", "metadata", "context"]},
+          "value": {"type": "number"},
+          "subscore": {"type": "number", "minimum": 0, "maximum": 1},
+          "weight": {"type": "integer", "minimum": 0},
+          "reliability": {"type": "number", "minimum": 0, "maximum": 1},
+          "available": {"type": "boolean"},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "groups": {
+      "type": "object",
+      "patternProperties": {
+        "^(technical|metadata|context)$": {
+          "type": "object",
+          "required": ["score", "coverage"],
+          "properties": {
+            "score": {"type": "number", "minimum": 0, "maximum": 1},
+            "coverage": {"type": "number", "minimum": 0, "maximum": 1}
+          }
+        }
+      }
+    },
+    "result": {
+      "type": "object",
+      "required": ["ai_probability", "verdict", "confidence", "coverage", "consistency", "top_indicators", "manual_research_hints"],
+      "properties": {
+        "ai_probability": {"type": "number", "minimum": 0, "maximum": 1},
+        "verdict": {"type": "string", "enum": ["UNAUFFÄLLIG", "EHER MENSCHLICH", "UNKLAR", "LIKELY AI-ASSISTED", "VERY LIKELY AI"]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "coverage": {"type": "number", "minimum": 0, "maximum": 1},
+        "consistency": {"type": "number", "minimum": 0, "maximum": 1},
+        "top_indicators": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "delta", "note"],
+            "properties": {
+              "id": {"type": "string"},
+              "delta": {"type": "number"},
+              "note": {"type": "string"}
+            }
+          }
+        },
+        "manual_research_hints": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "llm_judge": {
+      "type": ["object", "null"],
+      "properties": {
+        "model": {"type": "string"},
+        "backend": {"type": "string"},
+        "analysis": {"type": "string"},
+        "verdict": {"type": "string"},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    }
+  }
+}

@@ -3,8 +3,6 @@ from __future__ import annotations
 
 import re
 from difflib import SequenceMatcher
-from typing import List
-
 
 NON_WORD_RE = re.compile(r"[^\w\s]")
 MULTI_DASH_RE = re.compile(r"-{2,}")

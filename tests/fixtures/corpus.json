@@ -1,0 +1,215 @@
+{
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Calibration corpus for AI music detection. Human and AI tracks with expected verdicts.",
+    "verdict_bands": {
+      "UNAUFFAELLIG": "Score 0.00-0.20: Track appears definitively human-produced.",
+      "EHER MENSCHLICH": "Score 0.21-0.40: Track is likely human but has minor anomalies.",
+      "UNKLAR": "Score 0.41-0.60: Cannot reliably determine origin.",
+      "LIKELY AI-ASSISTED": "Score 0.61-0.80: Strong indicators of AI involvement.",
+      "VERY LIKELY AI": "Score 0.81-1.00: Almost certainly AI-generated."
+    },
+    "created": "2026-08-22",
+    "purpose": "Used to validate scoring thresholds and calibrate detector sensitivity."
+  },
+  "tracks": [
+    {
+      "filename": "Daft Punk - One More Time.mp3",
+      "artist": "Daft Punk",
+      "title": "One More Time",
+      "label": "human",
+      "source": "Beatport",
+      "notes": "Classic 2000 French house production. Heavily processed vocals with intentional rhythmic gating, sidechain compression, and layered disco samples. Production choices reflect deliberate artistic intent with human timing variations throughout.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "deadmau5 - Strobe.mp3",
+      "artist": "deadmau5",
+      "title": "Strobe",
+      "label": "human",
+      "source": "Beatport",
+      "notes": "10-minute progressive house arrangement with complex evolving structure, multiple breakdowns, and organic filter sweeps. Arrangement choices show human musical decision-making with non-repeating structural development.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Aphex Twin - Windowlicker.mp3",
+      "artist": "Aphex Twin",
+      "title": "Windowlicker",
+      "label": "human",
+      "source": "SoundCloud",
+      "notes": "IDM track with extreme dynamic range, natural tempo drift, and complex polyrhythmic programming. Contains deliberate imperfections and analog warmth characteristic of hardware-based production.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Boards of Canada - Dayvan Cowboy.mp3",
+      "artist": "Boards of Canada",
+      "title": "Dayvan Cowboy",
+      "label": "human",
+      "source": "SoundCloud",
+      "notes": "Organic textures with tape saturation, subtle pitch warble, and layered field recordings. Production exhibits natural warmth and analog character that AI models struggle to replicate authentically.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Jon Hopkins - Open Eye Signal.mp3",
+      "artist": "Jon Hopkins",
+      "title": "Open Eye Signal",
+      "label": "human",
+      "source": "Beatport",
+      "notes": "Dense, detailed techno production with intricate percussive layers, analog synth processing, and organic reverb tails. Complex signal chain processing shows human sound design expertise.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Caribou - Cant Do Without You.mp3",
+      "artist": "Caribou",
+      "title": "Can't Do Without You",
+      "label": "human",
+      "source": "SoundCloud",
+      "notes": "Vocal-driven electronic track with natural vocal processing, organic filtering, and human timing. Vocal performance contains natural breath and emotional dynamics absent from AI vocals.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Four Tet - Parallel Jalebi.mp3",
+      "artist": "Four Tet",
+      "title": "Parallel Jalebi",
+      "label": "human",
+      "source": "SoundCloud",
+      "notes": "Organic-electronic hybrid with field recordings, hand percussion, and non-standard time signatures. Experimental arrangement reflects human creative choices rather than pattern generation.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Burial - Archangel.mp3",
+      "artist": "Burial",
+      "title": "Archangel",
+      "label": "human",
+      "source": "SoundCloud",
+      "notes": "Dubstep/garage hybrid with vinyl crackle, fragmented vocal samples, and irregular rhythmic patterns. Lo-fi production aesthetic with deliberate noise artifacts and humanized swing.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Nicolas Jaar - Space Is Only Noise.mp3",
+      "artist": "Nicolas Jaar",
+      "title": "Space Is Only Noise",
+      "label": "human",
+      "source": "Beatport",
+      "notes": "Experimental ambient composition with extensive use of silence, irregular structures, and live instrument recordings. Unconventional arrangement demonstrates human artistic decision-making.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Apparat - Song of Los.mp3",
+      "artist": "Apparat",
+      "title": "Song of Los",
+      "label": "human",
+      "source": "SoundCloud",
+      "notes": "Organic-electronic fusion with live instrument integration, complex dynamic arrangements, and natural reverb spaces. Production exhibits human attention to emotional arc and pacing.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Moderat - Bad Kingdom.mp3",
+      "artist": "Moderat",
+      "title": "Bad Kingdom",
+      "label": "human",
+      "source": "Beatport",
+      "notes": "Collaborative electronic track with layered production, vocal processing, and complex arrangement transitions. Three producers contributing distinct creative voices creates non-repeating structural complexity.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "Jon Hopkins - Emerald Rush.mp3",
+      "artist": "Jon Hopkins",
+      "title": "Emerald Rush",
+      "label": "human",
+      "source": "Beatport",
+      "notes": "Extended progressive arrangement with evolving textures, dynamic builds, and organic synthesis. Production demonstrates human understanding of tension and release across long timeframes.",
+      "expected_verdict": "UNAUFFAELLIG"
+    },
+    {
+      "filename": "CLMX - Freedom.mp3",
+      "artist": "CLMX",
+      "title": "Freedom",
+      "label": "ai",
+      "source": "Suno",
+      "notes": "Documented Suno AI generation. Exhibits typical AI artifacts: overly consistent harmonic structure, generic vocal processing, and formulaic arrangement without unique creative choices.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "Anna Indiana - Synthetic Dreams.mp3",
+      "artist": "Anna Indiana",
+      "title": "Synthetic Dreams",
+      "label": "ai",
+      "source": "Suno",
+      "notes": "Fully AI-generated artist. Vocal timbre lacks natural breath and emotional variation. Harmonic progressions follow predictable patterns typical of generative music models.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "The Velvet Sundown - Digital Mirage.mp3",
+      "artist": "The Velvet Sundown",
+      "title": "Digital Mirage",
+      "label": "ai",
+      "source": "Suno",
+      "notes": "Spotify-listed AI band. Production exhibits uniform spectral balance, synthetic reverb characteristics, and algorithmic arrangement patterns. No evidence of human performance or artistic choice.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "Suno Demo - Upbeat Electronic.mp3",
+      "artist": "Suno Demo",
+      "title": "Upbeat Electronic",
+      "label": "ai",
+      "source": "Suno",
+      "notes": "Suno showcase track. Clean but generic production with typical AI hallmarks: overly polished dynamics, formulaic drops, and lack of genre-specific imperfections that define authentic styles.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "Udio Demo - Ambient Journey.mp3",
+      "artist": "Udio Demo",
+      "title": "Ambient Journey",
+      "label": "ai",
+      "source": "Udio",
+      "notes": "Udio showcase track. Ambient generation with recognizable AI characteristics: uniform spatial processing, lack of organic texture variation, and synthetic-sounding reverb tails.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "Boomy - Cosmic Drift.mp3",
+      "artist": "Boomy",
+      "title": "Cosmic Drift",
+      "label": "ai",
+      "source": "Boomy",
+      "notes": "Generated on Boomy AI music platform. Simple harmonic structure, generic sound palette, and algorithmic arrangement typical of early-generation AI music tools.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "Soundraw - Corporate Energy.mp3",
+      "artist": "Soundraw",
+      "title": "Corporate Energy",
+      "label": "ai",
+      "source": "Soundraw",
+      "notes": "AI-generated stock music from Soundraw. Designed for background use with intentionally generic characteristics, loop-based structure, and algorithmic transitions between sections.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "AIVA - Sonata in D Minor.mp3",
+      "artist": "AIVA",
+      "title": "Sonata in D Minor",
+      "label": "ai",
+      "source": "AIVA",
+      "notes": "AI classical composition. While technically proficient, exhibits computational precision in timing and dynamics that differs from human interpretation. Note velocity patterns follow mathematical distributions rather than expressive phrasing.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "Mubert - Ambient Flow.mp3",
+      "artist": "Mubert",
+      "title": "Ambient Flow",
+      "label": "ai",
+      "source": "Mubert",
+      "notes": "AI generative ambient from Mubert. Seamless loop generation with characteristic uniformity in spatial placement, lack of organic noise floor, and algorithmic textural layering.",
+      "expected_verdict": "VERY LIKELY AI"
+    },
+    {
+      "filename": "Loudly - Generated Track.mp3",
+      "artist": "Loudly",
+      "title": "Generated Track",
+      "label": "ai",
+      "source": "Loudly",
+      "notes": "Generated on Loudly AI music platform. Typical stock-quality output with overly clean production, generic arrangement, and lack of the subtle imperfections found in human recordings.",
+      "expected_verdict": "VERY LIKELY AI"
+    }
+  ]
+}
