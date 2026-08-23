@@ -207,6 +207,7 @@ Config file: `config.json` in project root.
 - Run `ruff check` before committing
 - MP3 files in root are test data — do not delete
 - Community AI Artists DB is source of truth in separate repo `/mnt/c/work/ai-artists-db/known_ai_artists.json`. Future DB entries must be added there, not in `ai_music_checker/data/known_ai_artists.json`. Local bundled copy is deprecated and will be removed.
+- GitHub CLI (`gh`) is available — use for debugging Actions, checking workflow runs, and interacting with GitHub API
 
 ## Build & Release
 
