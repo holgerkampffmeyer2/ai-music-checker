@@ -327,9 +327,7 @@ Entries include: CLMX, Anna Indiana, The Velvet Sundown, AIVA, Soundraw, Boomy, 
 
 The easiest way to contribute is via GitHub Issues:
 
-1. Go to [ai-artists-db Issues](https://github.com/holgerkampffmeyer2/ai-artists-db/issues/new/choose)
-2. Select **"Add AI Artist Entry"** template
-3. Fill in artist details and evidence
+1. Go to **[ai-artists-db Issues](https://github.com/holgerkampffmeyer2/ai-artists-db/issues/new?template=add-artist.yml)** → Fill in artist details
 4. Submit — maintainer reviews and auto-creates PR
 
 Alternatively, fork the repo and submit a PR directly. See [CONTRIBUTING.md](https://github.com/holgerkampffmeyer2/ai-artists-db#contributing) for details.
