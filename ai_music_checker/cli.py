@@ -512,6 +512,7 @@ def _handle_suggest_db(args: argparse.Namespace) -> int:
         print("ERROR: No files provided for suggestion. Use --help for usage.", file=sys.stderr)
         return 1
     
+    from ai_music_checker.community_db import load_or_fetch
     from ai_music_checker.db_suggester import save_suggestions, suggest_from_signals
     
     # Load config
@@ -521,6 +522,13 @@ def _handle_suggest_db(args: argparse.Namespace) -> int:
     if args.config:
         cli_overrides["config_path"] = str(args.config)
     config = Config.load(cli_overrides=cli_overrides, config_path=args.config)
+    
+    # Load community DB if online enabled
+    community_db = None
+    if args.online:
+        community_db = load_or_fetch(config.community_db)
+        if community_db is None:
+            print("WARNING: Could not load community database, proceeding without DB check", file=sys.stderr)
     
     # Collect audio files
     audio_files = collect_audio_files(args.files, args.recursive)
@@ -535,7 +543,7 @@ def _handle_suggest_db(args: argparse.Namespace) -> int:
     
     for filepath in audio_files:
         try:
-            probe, results, agg = process_file(filepath, config, args.online, args.heavy)
+            probe, results, agg, _ = process_file(filepath, config, args.online, args.heavy)
         except (OSError, ValueError) as e:
             print(f"ERROR {filepath.name}: {e}", file=sys.stderr)
             continue
@@ -543,7 +551,8 @@ def _handle_suggest_db(args: argparse.Namespace) -> int:
         # Suggest entry if AI probability is high enough
         suggestion = suggest_from_signals(
             probe, results, agg.ai_probability, agg.verdict,
-            min_confidence=args.min_ai_probability
+            min_confidence=args.min_ai_probability,
+            community_db=community_db
         )
         if suggestion:
             suggestions.append(suggestion)
@@ -556,6 +565,9 @@ def _handle_suggest_db(args: argparse.Namespace) -> int:
     print(f"\nGenerated {len(suggestions)} suggestion(s):\n")
     for s in suggestions:
         print(f"  - {s.name} ({s.ai_confidence} confidence)")
+        print(f"    DB Status: {s.db_status}")
+        if s.online_ai_indication:
+            print(f"    Online AI Indication: YES ({s.reason_code})")
         print(f"    Reason: {s.reason}")
         print(f"    Indicators: {', '.join(s.indicators[:5])}")
         print()

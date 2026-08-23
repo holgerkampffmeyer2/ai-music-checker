@@ -111,6 +111,152 @@ class TestDBSuggester:
         assert _generate_id("Anna Indiana") == "anna-indiana"
         assert _generate_id("The Velvet Sundown") == "the-velvet-sundown"
 
+    def test_artist_in_db_exact_match(self):
+        from ai_music_checker.db_suggester import artist_in_db
+        from ai_music_checker.community_db import DBEntry, CommunityDB
+        from datetime import date
+        
+        entry = DBEntry(
+            id="clmx",
+            name="CLMX",
+            aliases=["Cli-Max", "@clmxmusic"],
+            type="artist",
+            labels=["Balearic Vibes Records"],
+            ai_confidence="high",
+            evidence=[],
+            added=date.today(),
+            verified=date.today(),
+        )
+        db = CommunityDB(
+            schema_version="1.0.0",
+            updated=date.today(),
+            license="CC0-1.0",
+            entries=[entry]
+        )
+        
+        # Exact match
+        result = artist_in_db("CLMX", db, aliases=["Cli-Max", "@clmxmusic"])
+        assert result is not None
+        assert result.fuzzy is False
+        
+        # Alias match
+        result = artist_in_db("Cli-Max", db, aliases=["Cli-Max", "@clmxmusic"])
+        assert result is not None
+        assert result.fuzzy is False
+        
+        # Case insensitive
+        result = artist_in_db("clmx", db, aliases=["Cli-Max", "@clmxmusic"])
+        assert result is not None
+
+    def test_artist_in_db_no_match(self):
+        from ai_music_checker.db_suggester import artist_in_db
+        from ai_music_checker.community_db import DBEntry, CommunityDB
+        from datetime import date
+        
+        entry = DBEntry(
+            id="clmx",
+            name="CLMX",
+            aliases=[],
+            type="artist",
+            labels=[],
+            ai_confidence="high",
+            evidence=[],
+            added=date.today(),
+            verified=date.today(),
+        )
+        db = CommunityDB(
+            schema_version="1.0.0",
+            updated=date.today(),
+            license="CC0-1.0",
+            entries=[entry]
+        )
+        
+        result = artist_in_db("Unknown Artist", db, aliases=[])
+        assert result is None
+
+    def test_evaluate_online_ai_indication_positive(self):
+        from ai_music_checker.db_suggester import evaluate_online_ai_indication
+        from ai_music_checker.signals import SignalResult
+        
+        # C1 zero footprint, C2 high, C5 negative
+        results = [
+            SignalResult(id="C1", name="artist_footprint", value=0.0, subscore=0.8, weight=5, reliability=0.6, available=True, note="no footprint", group="context"),
+            SignalResult(id="C2", name="label_pattern", value=0.0, subscore=0.75, weight=6, reliability=0.5, available=True, note="content farm pattern", group="context"),
+            SignalResult(id="C5", name="community_db", value=0.0, subscore=0.0, weight=9, reliability=0.8, available=True, note="not found", group="context"),
+        ]
+        
+        indication, reason = evaluate_online_ai_indication(results)
+        assert indication is True
+        assert "C1_no_footprint" in reason
+        assert "C2_content_farm" in reason
+
+    def test_evaluate_online_ai_indication_negative(self):
+        from ai_music_checker.db_suggester import evaluate_online_ai_indication
+        from ai_music_checker.signals import SignalResult
+        
+        # C1 has footprint, C2 low, C5 negative
+        results = [
+            SignalResult(id="C1", name="artist_footprint", value=0.0, subscore=0.0, weight=5, reliability=0.6, available=True, note="found in MB", group="context"),
+            SignalResult(id="C2", name="label_pattern", value=0.0, subscore=0.2, weight=6, reliability=0.5, available=True, note="normal label", group="context"),
+            SignalResult(id="C5", name="community_db", value=0.0, subscore=0.0, weight=9, reliability=0.8, available=True, note="not found", group="context"),
+        ]
+        
+        indication, reason = evaluate_online_ai_indication(results)
+        assert indication is False
+
+    def test_suggest_from_signals_with_db_status(self):
+        from ai_music_checker.db_suggester import suggest_from_signals
+        from ai_music_checker.signals import SignalResult
+        from unittest.mock import MagicMock
+        from pathlib import Path
+        
+        probe = MagicMock()
+        probe.tags = {"artist": "Test Artist"}
+        probe.path = Path("/path/to/test.mp3")
+        
+        results = [
+            SignalResult(
+                id="T1", name="hf_energy_profile", value=0.0,
+                subscore=0.8, weight=12, reliability=0.6,
+                available=True, note="cutoff detected", group="technical"
+            ),
+            SignalResult(
+                id="C1", name="artist_footprint", value=0.0,
+                subscore=0.8, weight=5, reliability=0.6,
+                available=True, note="no footprint", group="context"
+            ),
+        ]
+        
+        # Create mock community DB with medium confidence (should still suggest but with db_status)
+        from ai_music_checker.community_db import DBEntry, CommunityDB
+        from datetime import date
+        entry = DBEntry(
+            id="test-artist",
+            name="Test Artist",
+            aliases=[],
+            type="artist",
+            labels=[],
+            ai_confidence="medium",  # medium confidence - should still suggest
+            evidence=[],
+            added=date.today(),
+            verified=date.today(),
+        )
+        community_db = CommunityDB(
+            schema_version="1.0.0",
+            updated=date.today(),
+            license="CC0-1.0",
+            entries=[entry]
+        )
+        
+        # Pass community_db to suggest_from_signals
+        suggestion = suggest_from_signals(
+            probe, results, ai_probability=0.75, verdict="LIKELY AI-ASSISTED",
+            min_confidence=0.6, community_db=community_db
+        )
+        
+        assert suggestion is not None
+        assert suggestion.db_status == "already_in_db"
+
     def test_suggest_from_signals_below_threshold(self):
         from ai_music_checker.db_suggester import suggest_from_signals
         from ai_music_checker.signals import SignalResult

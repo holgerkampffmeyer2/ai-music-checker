@@ -23,6 +23,9 @@ class DBSuggestion:
     evidence: list[dict[str, Any]] = field(default_factory=list)
     reason: str = ""
     indicators: list[str] = field(default_factory=list)
+    db_status: str = "not_in_db"
+    online_ai_indication: bool = False
+    reason_code: str = ""
     
     def to_dict(self) -> dict[str, Any]:
         """Convert to dict for JSON output."""
@@ -36,6 +39,9 @@ class DBSuggestion:
             "evidence": self.evidence,
             "added": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
             "verified": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
+            "db_status": self.db_status,
+            "online_ai_indication": self.online_ai_indication,
+            "reason_code": self.reason_code,
             "_suggestion": {
                 "reason": self.reason,
                 "indicators": self.indicators,
@@ -52,12 +58,86 @@ def _generate_id(name: str) -> str:
     return id_str[:50]
 
 
+class DBMatchResult:
+    """Result of artist DB lookup."""
+    def __init__(self, entry: Any, fuzzy: bool = False):
+        self.entry = entry
+        self.fuzzy = fuzzy
+
+
+def artist_in_db(artist: str, community_db: Any, fuzzy: bool = False, threshold: float = 0.9, aliases: list[str] | None = None) -> DBMatchResult | None:
+    """Check if artist is in community database.
+    
+    Args:
+        artist: Artist name to look up
+        community_db: CommunityDB instance
+        fuzzy: Enable fuzzy matching
+        threshold: Fuzzy match threshold (Jaro-Winkler)
+        aliases: Optional list of aliases to include in search
+    
+    Returns:
+        DBMatchResult if found, None otherwise
+    """
+    if community_db is None:
+        return None
+    
+    # Use the existing lookup method
+    search_aliases = aliases or []
+    match = community_db.lookup(artist, search_aliases, fuzzy=fuzzy, threshold=threshold)
+    if match:
+        return DBMatchResult(match.entry, fuzzy=match.fuzzy)
+    return None
+
+
+def evaluate_online_ai_indication(results: list[SignalResult]) -> tuple[bool, str]:
+    """Evaluate if online signals indicate AI origin.
+    
+    Args:
+        results: List of SignalResult from analysis
+        
+    Returns:
+        Tuple of (indication: bool, reason_code: str)
+    """
+    # Get context signals
+    c1 = next((r for r in results if r.id == "C1" and r.available), None)
+    c2 = next((r for r in results if r.id == "C2" and r.available), None)
+    c5 = next((r for r in results if r.id == "C5" and r.available), None)
+    
+    indication_parts = []
+    online_ai = False
+    
+    # C1: Artist footprint - high subscore means no footprint (suspicious)
+    if c1 and c1.subscore >= 0.8:
+        online_ai = True
+        indication_parts.append("C1_no_footprint")
+    
+    # C2: Label pattern - high subscore means content farm pattern
+    if c2 and c2.subscore >= 0.7:
+        online_ai = True
+        indication_parts.append("C2_content_farm")
+    
+    # C5: Community DB - any positive match indicates AI
+    if c5 and c5.subscore > 0.0:
+        online_ai = True
+        indication_parts.append("C5_db_match")
+    
+    # C4: Press text buzzwords (if available)
+    c4 = next((r for r in results if r.id == "C4" and r.available), None)
+    if c4 and c4.subscore >= 0.5:
+        online_ai = True
+        indication_parts.append("C4_press_buzzwords")
+    
+    reason_code = ",".join(indication_parts) if indication_parts else "no_online_indication"
+    return online_ai, reason_code
+
+
 def suggest_from_signals(
     probe: Any,
     results: list[SignalResult],
     ai_probability: float,
     verdict: str,
     min_confidence: float = 0.6,
+    community_db: Any = None,
 ) -> DBSuggestion | None:
     """Suggest a new DB entry based on analysis signals.
     
@@ -67,6 +147,7 @@ def suggest_from_signals(
         ai_probability: Calculated AI probability score
         verdict: Verdict string (e.g., "LIKELY AI-ASSISTED")
         min_confidence: Minimum AI probability to suggest entry
+        community_db: Optional CommunityDB instance for DB presence check
     
     Returns:
         DBSuggestion if entry should be added, None otherwise
@@ -89,6 +170,19 @@ def suggest_from_signals(
     
     if not artist or len(artist) < 2:
         return None
+    
+    # Check if artist already in community DB
+    db_status = "not_in_db"
+    if community_db is not None:
+        db_match = artist_in_db(artist, community_db)
+        if db_match:
+            db_status = "already_in_db"
+            # If already in DB with high confidence, don't suggest
+            if db_match.entry.ai_confidence == "high":
+                return None
+    
+    # Evaluate online AI indication
+    online_ai_indication, reason_code = evaluate_online_ai_indication(results)
     
     # Collect indicators
     indicators = []
@@ -132,6 +226,16 @@ def suggest_from_signals(
             "status": "valid",
         })
     
+    # Add online indication as evidence if applicable
+    if online_ai_indication:
+        evidence.append({
+            "url": f"local-analysis://{probe.path.name}#online",
+            "note": f"Online AI indication: {reason_code}",
+            "date": datetime.now(tz=timezone.utc).strftime("%Y-%m"),
+            "last_checked": datetime.now(tz=timezone.utc).strftime("%Y-%m-%d"),
+            "status": "valid",
+        })
+    
     # Ensure we have at least one evidence item
     if not evidence:
         evidence.append({
@@ -142,9 +246,17 @@ def suggest_from_signals(
             "status": "valid",
         })
     
+    # Build reason
+    reason_parts = [f"AI probability {ai_probability:.0%} ({verdict})"]
+    if online_ai_indication:
+        reason_parts.append(f"Online AI indication: {reason_code}")
+    if db_status == "already_in_db":
+        reason_parts.append("Artist already in community DB")
+    reason_parts.append(f"{len(indicators)} suspicious indicators")
+    reason = ", ".join(reason_parts)
+    
     # Build suggestion
     id_val = _generate_id(artist)
-    reason = f"AI probability {ai_probability:.0%} ({verdict}), {len(indicators)} suspicious indicators"
     
     suggestion = DBSuggestion(
         id=id_val,
@@ -156,6 +268,9 @@ def suggest_from_signals(
         evidence=evidence,
         reason=reason,
         indicators=indicator_details,
+        db_status=db_status,
+        online_ai_indication=online_ai_indication,
+        reason_code=reason_code,
     )
     
     return suggestion

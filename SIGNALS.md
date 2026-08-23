@@ -1116,3 +1116,40 @@ All signal parameters are configurable via `config.json`. The full schema:
 ### Community Database
 
 - ai-artists-db -- https://github.com/holgerkampffmeyer2/ai-artists-db (curated known-AI-artist database, CC0-1.0 license)
+
+---
+
+## DB Suggestion Workflow
+
+The `--suggest-db` flag implements a workflow for proposing new entries to the community AI artist database:
+
+### Workflow Steps
+
+1. **Analyse track** — Run full signal analysis (technical, metadata, context if `--online`)
+2. **Check community DB** — Look up artist in cached/fetched DB (exact + alias + optional fuzzy)
+3. **Evaluate online AI indication** — Check C1 (artist footprint), C2 (label pattern), C5 (community DB), C4 (press text) for AI signals
+4. **Propose entry** — If AI probability ≥ threshold (`--min-ai-probability`, default 0.6):
+   - If artist already in DB with `high` confidence → no suggestion (already documented)
+   - If artist in DB with `medium`/`low` → suggestion with `db_status: already_in_db`
+   - If not in DB → suggestion with `db_status: not_in_db` and `online_ai_indication` flag
+
+### Suggestion Metadata
+
+Each suggestion includes:
+- `db_status`: `not_in_db` | `already_in_db`
+- `online_ai_indication`: boolean
+- `reason_code`: comma-separated codes (e.g., `C1_no_footprint,C2_content_farm`)
+- `evidence`: local analysis + online signals
+
+### Usage
+
+```bash
+# Basic suggestion with threshold
+ai-music-checker track.mp3 --suggest-db --min-ai-probability 0.6
+
+# With online context signals
+ai-music-checker track.mp3 --online --suggest-db --min-ai-probability 0.6
+
+# Save to file
+ai-music-checker *.mp3 --online --suggest-db --save-suggestions suggestions.json
+```
