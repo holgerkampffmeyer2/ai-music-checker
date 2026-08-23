@@ -323,13 +323,16 @@ The tool uses a curated database of known AI artists/labels maintained at:
 
 Entries include: CLMX, Anna Indiana, The Velvet Sundown, AIVA, Soundraw, Boomy, Mubert, Loudly, and more.
 
-### Contributing
+### Contributing to the Database
 
-To add an entry to the community database:
+The easiest way to contribute is via GitHub Issues:
 
-1. Fork the [ai-artists-db](https://github.com/holgerkampffmeyer2/ai-artists-db) repository
-2. Add your entry to `known_ai_artists.json` following the schema
-3. Submit a pull request with evidence URLs
+1. Go to [ai-artists-db Issues](https://github.com/holgerkampffmeyer2/ai-artists-db/issues/new/choose)
+2. Select **"Add AI Artist Entry"** template
+3. Fill in artist details and evidence
+4. Submit — maintainer reviews and auto-creates PR
+
+Alternatively, fork the repo and submit a PR directly. See [CONTRIBUTING.md](https://github.com/holgerkampffmeyer2/ai-artists-db#contributing) for details.
 
 ## Development
 
